@@ -1,9 +1,5 @@
 import numpy as np
 
-alphabet_index = {'a' : 0, 'b' : 1, 'c' : 2, 'd' : 3, 'e' : 4, 'f' : 5, 'g': 6, 'h' : 7, 'i': 8, 'j': 9, 'k': 10,
-                  'l': 11, 'm': 12, 'n':13, 'o':14, 'p':15, 'q':16, 'r':17, 's':18, 't':19, 'u':20,
-                  'v':21, 'w':22, 'x':23, 'y':24, 'z':25} 
-
 class R_Automata(object):
 
     def __init__(self, nbL=0, nbS=0, initial=[], final=[], transitions=[]):
@@ -38,8 +34,7 @@ class R_Automata(object):
         for i in range(1,n+1):
             for j in range(1,Q+1):
                 for k in range(1,Q+1):
-                    number = string[i-1]
-                    index = alphabet_index[number]
+                    index = ord(string[i-1]) - ord('a')
                     F[i][j] += F[i-1][k]*self.transitions[index][k-1][j-1]
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
         T = 0
