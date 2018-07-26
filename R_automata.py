@@ -30,7 +30,7 @@ class R_Automata(object):
 
         for i in range(1,n+1):
             key = string[i-1]
-            F[i] += F[i-1]@self.transitions[index][:,:]
+            F[i] += F[i-1]@self.transitions[key][:,:]
 
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
         T = F[n]@np.transpose(self.final)
