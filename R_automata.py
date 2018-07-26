@@ -26,17 +26,16 @@ class R_Automata(object):
         F = np.zeros((n+1, Q), dtype=np.float64)
         
         #initialize
-        for j in range(0,Q):
+        for j in range(Q):
             F[0][j] = self.initial[j]
 
         for i in range(1,n+1):
-            for j in range(0,Q):
-                index = string[i-1]
-                F[i][j] += F[i-1]@ex_transitions[index][:, j]
+            index = string[i-1]
+            F[i] += F[i-1]@ex_transitions[index][:,:]
 
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
         T = 0
-        for j in range(0,Q):
+        for j in range(Q):
             T += F[n][j]*self.final[j]
             print(F)
         return T
