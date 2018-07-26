@@ -29,17 +29,99 @@ class R_Automata(object):
         F[0] = self.initial
 
         for i in range(1,n+1):
-            index = string[i-1]
-            F[i] += F[i-1]@self.transitions[index][:,:]
+            key = string[i-1]
+            F[i] += F[i-1]@self.transitions[key]
 
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
         T = F[n]@np.transpose(self.final)
         return T
+
+    def epsilon_transition_removal(self):
+        """
+        Step 1: If there is more than one initial state, add a new initial state and epsilon-transitions
+                from this state to each of the previous initial states,
+                with probability equal to that of the state being initial.
+        """
+        #Algorithm 5.7: Transforming the epsilon-PFA into a epsilon-PFA with just one initial state.
+        if np.count_nonzero(self.initial) > 1:
+            Q = self.nbS
+            Q_prime = Q + 1
+            initial_original = self.initial
+            #new transition with just one initial state q_0
+            #transitions_prime = np.zeros((Q_prime,Q_prime), np.float64)
+            #transitions_prime[0,1:Q_prime] = self.initial
+            #transitions_prime[1:Q_prime,1:Q_prime] = self.transitions['epsilon']
+
+            #new initial probability with Ip(q_0) = 1
+            initial_prime = np.zeros((Q_prime), np.float64)
+            initial_prime[0] = 1
+
+            #new final probability Fp(q_0) = 0
+            final_prime = np.zeros((Q_prime), np.float64)
+            final_prime[1:Q_prime] = self.final
+
+            #return new Automata
+            self.nbS = Q_prime
+            self.initial = initial_prime
+            self.final = final_prime
             
+            #new transition with just one initial state q_0
+            for key in self.transitions.keys():
+                temp = self.transitions[key]
+                self.transitions[key] = np.zeros((Q_prime,Q_prime), np.float64)
+                self.transitions[key][1:Q_prime, 1:Q_prime] = temp
+            self.transitions['epsilon'][0,1:Q_prime] = initial_original
+        print("---step1 finished----")
+        print(self.initial)
+        print(self.final)
+        print(self.transitions)
+                
+        """
+        Step 2: Algorithm 5.8 iteratively removes a epsilon-loop if there is one,
+                and if not the epsilone-transition with maximal extremity.
+        """
+        #Algorithm 5.8: Eliminating epsilon-transitions
+        Q = self.nbS
+        #while 'there still are epsilon-transitions' do
+        while np.count_nonzero(self.transitions['epsilon']) > 0:
+            #if there exists a epsilon-loop (q,epsilon,q, P) then
+            for i in range(int(self.transitions['epsilon'].shape[0])):
+                if self.transitions['epsilon'][i][i] > 0:
+                    #for all transitions(q,a,q') , (a,q') != (epsilon,q) do
+                    for key in self.transitions.keys():
+                        if key != 'epsilon':
+                            self.transitions[key][i] *= (1/(1-self.transitions['epsilon'][i][i]))
+                        else:
+                            for j in range(Q):
+                                if i != j:
+                                    self.transitions[key][i][j] *= (1/(1-self.transitions['epsilon'][i][i]))
+                    self.final[i] *= 1/(1-self.transitions['epsilon'][i][i])
+                    self.transitions['epsilon'][i][i] = 0
+            print("---- e loop removal ----")
+            print(self.initial)
+            print(self.final)
+            print(self.transitions)
+            # there are no epsilon-loops
+            # let (q,epsilon,q_m) b a epsilon-transition with m maximal
+            m = 0
+            for i in range(self.transitions['epsilon'].shape[0]):
+                if self.transitions['epsilon'].transpose()[i].any() > 0:
+                    m = i
+            for n in range(m):
+                for i in range(Q):
+                    self.transitions['epsilon'][i][n] += self.transitions['epsilon'][i][m] * self.transitions['epsilon'][m][n]
+            for n in range(Q):
+                for i in range(Q):
+                    for key in self.transitions.keys():
+                        self.transitions[key][i][n] += self.transitions['epsilon'][i][m]*self.transitions[key][m][n]
+            for i in range(Q):
+                self.final[i] += self.transitions['epsilon'][i][m]*self.final[m]
+                self.transitions['epsilon'][i][m] = 0                                        
 
 # a@b
 """
 Input Examples from http://pageperso.lif.univ-mrs.fr/~remi.eyraud/scikit-splearn/ 
+"""
 """
 ex_initial = np.array([1, 0], dtype=np.float64)
 ex_final = np.array([0, 1/4], dtype=np.float64)
@@ -48,9 +130,37 @@ ex_transitions = {
     'a': np.array([[1/2, 1/6],
                     [0,  1/4]], dtype=np.float64),
     'b': np.array([[0,   1/3],
-                    [1/4, 1/4]], dtype=np.float64)
+                    [1/4, 1/4]], dtype=np.float64),
+    'epsilon' : np.array([[0, 0],
+                          [1, 0]], dtype=np.float64)
+}
+"""
+#example in Chapter 5.2 Probabilistic automata P.113
+ex_initial = np.array([1, 0, 0, 0], dtype=np.float64)
+ex_final = np.array([0, 0.4, 0.2, 0.6], dtype=np.float64)
+ex_transitions = {
+    'a': np.array([ [0, 0, 0.5, 0],
+                    [0, 0, 0, 0.1],
+                    [0, 0, 0, 0.1],
+                    [0, 0, 0, 0.2]], dtype=np.float64),
+    'epsilon' : np.array([[0, 0.5, 0, 0],
+                          [0, 0.5, 0, 0],
+                          [0, 0.2, 0.5, 0],
+                          [0, 0, 0.2, 0]], dtype=np.float64)
 }
 
-ex_automaton = R_Automata(2,2,ex_initial, ex_final, ex_transitions)
+ex_automaton = R_Automata(2,4,ex_initial, ex_final, ex_transitions)
+
+print(ex_automaton.initial)
+print(ex_automaton.final)
+print(ex_automaton.transitions)
+ex_automaton.epsilon_transition_removal()
+print("-----------------------")
+print(ex_automaton.initial)
+print(ex_automaton.final)
+print(ex_automaton.transitions)
+
 print('generate a string:', ex_automaton.generate())
-print('probability of "aba":',ex_automaton.parse('aba'))
+string = 'a'
+print('probability of "',string,'":',ex_automaton.parse(string))
+
