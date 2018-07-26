@@ -23,38 +23,38 @@ class R_Automata(object):
         #Algorithm 5.2: FORWARD.
         n = int(len(string))
         Q = self.nbS
-        F = np.zeros((n+1, Q+1), dtype=np.float64)
+        F = np.zeros((n+1, Q), dtype=np.float64)
         
         #initialize
-        for j in range(1,Q+1):
-            F[0][j] = self.initial[j-1]
-            for i in range(1,n+1):
-                F[i][j] = 0
+        for j in range(0,Q):
+            F[0][j] = self.initial[j]
 
         for i in range(1,n+1):
-            for j in range(1,Q+1):
-                for k in range(1,Q+1):
-                    index = ord(string[i-1]) - ord('a')
-                    F[i][j] += F[i-1][k]*self.transitions[index][k-1][j-1]
+            for j in range(0,Q):
+                index = string[i-1]
+                F[i][j] += F[i-1]@ex_transitions[index][:, j]
+
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
         T = 0
-        for j in range(1,Q+1):
-            T += F[n][j]*self.final[j-1]
+        for j in range(0,Q):
+            T += F[n][j]*self.final[j]
+            print(F)
         return T
             
-            
 
+# a@b
 """
 Input Examples from http://pageperso.lif.univ-mrs.fr/~remi.eyraud/scikit-splearn/ 
 """
-ex_initial = [1, 0]
-ex_final = [0, 1/4]
-ex_transitions = [
-    [[1/2, 1/6],
-     [0,   1/4] ],  # Ma
-    [[0,   1/3],
-     [1/4, 1/4] ]  # Mb
-]
+ex_initial = np.array([1, 0], dtype=np.float64)
+ex_final = np.array([0, 1/4], dtype=np.float64)
+
+ex_transitions = {
+    'a': np.array([[1/2, 1/6],
+                    [0,  1/4]], dtype=np.float64),
+    'b': np.array([[0,   1/3],
+                    [1/4, 1/4]], dtype=np.float64)
+}
 
 ex_automaton = R_Automata(2,2,ex_initial, ex_final, ex_transitions)
 print('generate a string:', ex_automaton.generate())
