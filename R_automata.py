@@ -31,7 +31,7 @@ class R_Automata(object):
 
         for i in range(1,n+1):
             index = string[i-1]
-            F[i] += F[i-1]@ex_transitions[index][:,:]
+            F[i] += F[i-1]@self.transitions[index][:,:]
 
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
         T = 0
