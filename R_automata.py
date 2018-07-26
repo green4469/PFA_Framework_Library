@@ -23,21 +23,17 @@ class R_Automata(object):
         #Algorithm 5.2: FORWARD.
         n = int(len(string))
         Q = self.nbS
-        F = np.zeros((n+1, Q), dtype=np.float64)
+        F = np.zeros((n+1, Q), dtype=np.float64) #F[n][s] = Pr_A(x,q_s), string x = a_1 a_2 ... a_n
         
         #initialize
-        for j in range(Q):
-            F[0][j] = self.initial[j]
+        F[0] = self.initial
 
         for i in range(1,n+1):
-            index = string[i-1]
-            F[i] += F[i-1]@ex_transitions[index][:,:]
+            key = string[i-1]
+            F[i] += F[i-1]@ex_transitions[key][:,:]
 
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
-        T = 0
-        for j in range(Q):
-            T += F[n][j]*self.final[j]
-            print(F)
+        T = F[n]@np.transpose(self.final)
         return T
             
 
