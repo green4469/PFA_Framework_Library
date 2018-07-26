@@ -29,8 +29,8 @@ class R_Automata(object):
         F[0] = self.initial
 
         for i in range(1,n+1):
-            key = string[i-1]
-            F[i] += F[i-1]@ex_transitions[key][:,:]
+            index = string[i-1]
+            F[i] += F[i-1]@self.transitions[index][:,:]
 
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
         T = F[n]@np.transpose(self.final)
