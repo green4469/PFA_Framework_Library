@@ -59,9 +59,8 @@ class PFA(R_Automata):
 
     def generate(self):
         s = np.random.choice(self.nbS, p=self.initial)
-        at_final = False
         generated = ""
-        while not at_final:
+        while True:
             # P(x) = sum_E P(x|E)p(E)
             # get an alphabet
             a = np.random.choice(self.nbL + 1,
@@ -74,6 +73,7 @@ class PFA(R_Automata):
             # get the next state
             s = np.random.choice(self.nbS,
                                  p=self.transitions[a][s])
+        return generated
 
 
 
