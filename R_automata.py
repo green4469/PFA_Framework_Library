@@ -43,7 +43,7 @@ class PFA(R_Automata):
         super(PFA, self).__init__(nbL, nbS, initial, final, transitions)
 
     def probability_cond(self):
-        if abs(np.sum(initial), 1.0) > 1e-8:
+        if abs(np.sum(self.initial), 1.0) > 1e-8:
             return False, "Wrong initial prob"
         for q in range(self.nbS):
             total_prob = .0
