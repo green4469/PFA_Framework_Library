@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import copy
 
 class R_Automata(object):
 
@@ -47,15 +48,49 @@ class PFA(R_Automata):
             return False, "Wrong initial prob"
         for q in range(self.nbS):
             total_prob = .0
-            for _, transition in self.transitions.items():
+            for transition in self.transitions.values():
                 total_prob += transition[q,:].sum()
             total_prob += self.final[q]
             if abs(total_prob, 1.0) > 1e-8:
                 return False, "Wrong transition prob at state %d"%(q)
         return True, ""
 
-    def halting_cond(self):
-        pass
+    def get_reachable_state_indices(self):
+        # obtain all reachable states
+        reachable_flag = self.initial.astype(np.bool)
+        while True:
+            prev_flag = copy.deepcopy(reachable_flag)
+            reachable_states = np.nonzero(reachable_flag)
+            for transition in self.transitions.values():
+                reachable_flag += np.sum(transition[reachable_states,:].astype(np.bool), axis=1)
+            if not np.sum(np.logical_xor(prev_flag, reachable_flag)):
+                return reachable_states
+            else:
+                del prev_flag
+                continue
+
+
+    def terminating_cond(self):
+        """
+        For all reachable states, there exists a path to a state which can be final
+        """
+        unreachable_flag = self.ones((self.nbS,), dtype=np.bool) ^ self.get_reachable_state_indices()
+        terminating_flag = self.final.astype(np.bool) + unreachable_flag
+        while True:
+            prev_flag = copy.deepcopy(terminating_flag)
+            terminating_states = np.nonzero(terminating_flag)
+            for transition in self.transitions.values():
+                terminating_flag += np.sum(transition[:,terminating_states].astype(np.bool), axis=0)
+            if not np.sum(np.logical_xor(prev_flag, terminating_flag)):
+                if False in terminating_flag:
+                    return False, "nonterminating states %s"%(str([i for i in range(self.nbS) if i not in terminating_states]))
+                else:
+                    return True, ""
+            else:
+                del prev_flag
+                continue
+
+
 
     def generate(self):
         s = np.random.choice(self.nbS, p=self.initial)
@@ -63,9 +98,10 @@ class PFA(R_Automata):
         while True:
             # P(x) = sum_E P(x|E)p(E)
             # get an alphabet
-            a = np.random.choice(self.nbL + 1,
+            n_a = np.random.choice(self.nbL + 1,
                                  p=[pr_a[s].sum() for pr_a in self.transitions.values()] + [self.final[s]])
-            if a == self.nbL:
+            a = list(self.transitions.keys())[a]
+            if n_a == self.nbL:
                 return generated
             else:
                 generated += a
