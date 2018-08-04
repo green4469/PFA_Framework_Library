@@ -77,6 +77,7 @@ class R_Automata(object):
         Q = self.nbS
         #while 'there still are epsilon-transitions' do
         if 'epsilon' in self.transitions:
+            #time complexity: O(|e|*|Q|^2*|k|), |e|:the num of epsilon transition, |k|:the num of kinds of transitions
             while np.count_nonzero(self.transitions['epsilon']) > 0:
                 #if there exists a epsilon-loop (q,epsilon,q, P) then
                 for i in range(self.transitions['epsilon'].shape[0]):
@@ -146,7 +147,7 @@ class R_Automata(object):
                 bestscore = V[n][j]*self.final[j]
                 bestpath = Vpath[n][j]
         """
-        return bestpath        
+        return bestpath, bestscore #Is the bestsocre necessary to be returned?        
     
 # a@b
 
@@ -206,4 +207,5 @@ if __name__ == "__main__":
                         [0.5, 0.2, 0, 0]], dtype = np.float64)
         }
     ex_automaton = R_Automata(2, 4, ex_initial, ex_final, ex_transitions)
-    print("bestpath(the sequence of the number of the states):",ex_automaton.viterbi('ab'))
+    bestpath, bestscore = ex_automaton.viterbi('ab')
+    print("bestpath(the sequence of the number of the states):",bestpath)
