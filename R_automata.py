@@ -123,17 +123,29 @@ class R_Automata(object):
 
         for i in range(1,n+1):
             for j in range(self.nbS):
+                #below is reducing time complexity but there are some problems with Vpath
+                temp_ndarray = V[i-1][:]*self.transitions[string[i-1]].transpose()[j,:]
+                V[i][j] = max(temp_ndarray)
+                Vpath[i][j] = Vpath[i-1][np.argmax(temp_ndarray)]+str(j)
+                """
+                #below is the original algorithm
                 for k in range(self.nbS):
-                    if V[i][j] < V[i-1][k]*self.transitions[string[i-1]][k,j]:
+                   if V[i][j] < V[i-1][k]*self.transitions[string[i-1]][k,j]:
                         V[i][j] = V[i-1][k]*self.transitions[string[i-1]][k,j]
-                        Vpath[i][j] = Vpath[i-1][k]+str(j)
+                        Vpath[i][j] = Vpath[i-1][k]+str(j) 
+                """
         #Multiply by the halting probabilities
         bestscore = 0
         bestpath = ""
+        temp_ndarray = V[n][:]*self.final[:]
+        bestscore = max(temp_ndarray)
+        bestpath = Vpath[n][np.argmax(temp_ndarray)]
+        """
         for j in range(self.nbS):
             if V[n][j]*self.final[j] > bestscore:
                 bestscore = V[n][j]*self.final[j]
                 bestpath = Vpath[n][j]
+        """
         return bestpath        
     
 # a@b
