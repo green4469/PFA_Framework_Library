@@ -1,5 +1,11 @@
 import numpy as np
+
+from numpy.linalg import inv
+
 import math
+import copy
+
+from DS import Queue
 
 class R_Automata(object):
 
@@ -12,181 +18,251 @@ class R_Automata(object):
         self.initial = initial
         self.final = final
         self.transitions = transitions
+        self.alphabet = self.transitions.keys()
 
     """
     Forward algorithm in "Representing Distributions over Strings with
                           Automata and Grammars", Page 105
     """
     def parse(self, string):
-        if 'epsilon' in self.transitions:
-            return "ERROR(There are epsilon transitions in the automata. Use the function 'epsilon_transition_removal' before parsing)"
         #Algorithm 5.2: FORWARD.
         n = int(len(string))
         Q = self.nbS
         F = np.zeros((n+1, Q), dtype=np.float64) #F[n][s] = Pr_A(x,q_s), string x = a_1 a_2 ... a_n
 
         #initialize
-        F[0,:] = self.initial[:]
+        F[0] = self.initial
 
         for i in range(1,n+1):
             key = string[i-1]
-            F[i,:] += F[i-1,:]@self.transitions[key][:,:]
+            F[i] += F[i-1]@self.transitions[key][:,:]
 
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
-        T = F[n,:]@np.transpose(self.final[:])
+        T = F[n]@np.transpose(self.final)
+
         return T
 
-    def epsilon_transition_removal(self):
-        """
-        Step 1: If there is more than one initial state, add a new initial state and epsilon-transitions
-                from this state to each of the previous initial states,
-                with probability equal to that of the state being initial.
-        """
-        #Algorithm 5.7: Transforming the epsilon-PFA into a epsilon-PFA with just one initial state.
-        if np.count_nonzero(self.initial) > 1:
-            Q = self.nbS
-            Q_prime = Q + 1
-            initial_original = self.initial[:]
 
-            #new initial probability with Ip(q_0) = 1
-            initial_prime = np.zeros((Q_prime), np.float64)
-            initial_prime[0] = 1
-
-            #new final probability Fp(q_0) = 0
-            final_prime = np.zeros((Q_prime), np.float64)
-            final_prime[1:Q_prime] = self.final[:]
-
-            #return new Automata
-            self.nbS = Q_prime
-            self.initial[:] = initial_prime[:]
-            self.final[:] = final_prime[:]
-
-            #new transition with just one initial state q_0
-            for key in self.transitions.keys():
-                temp = self.transitions[key][:,:]
-                self.transitions[key] = np.zeros((Q_prime,Q_prime), np.float64)
-                self.transitions[key][1:Q_prime, 1:Q_prime] = temp[:,:]
-            self.transitions['epsilon'][0,1:Q_prime] = initial_original[:]
-        """
-        Step 2: Algorithm 5.8 iteratively removes a epsilon-loop if there is one,
-                and if not the epsilone-transition with maximal extremity.
-        """
-        #Algorithm 5.8: Eliminating epsilon-transitions
-        Q = self.nbS
-        #while 'there still are epsilon-transitions' do
-        if 'epsilon' in self.transitions:
-            while np.count_nonzero(self.transitions['epsilon']) > 0:
-                #if there exists a epsilon-loop (q,epsilon,q, P) then
-                for i in range(self.transitions['epsilon'].shape[0]):
-                    if self.transitions['epsilon'][i][i] > 0:
-                        #for all transitions(q,a,q') , (a,q') != (epsilon,q) do
-                        for key in self.transitions.keys():
-                            for j in range(Q):
-                                if key != 'epsilon' or j != i: # (a,q') != (epsilon, q)
-                                    self.transitions[key][i][j] *= (1/(1-self.transitions['epsilon'][i][i]))
-                        self.final[i] *= 1/(1-self.transitions['epsilon'][i][i])
-                        self.transitions['epsilon'][i][i] = 0
-                # there are no epsilon-loops
-                # let (q,epsilon,q_m) b a epsilon-transition with m maximal
-                m = 0
-                for i in range(self.transitions['epsilon'].shape[0]):
-                    if self.transitions['epsilon'].transpose()[i].any() > 0:
-                        m = i
-                for n in range(m):
-                    self.transitions['epsilon'][:,n] += self.transitions['epsilon'][:,m] * self.transitions['epsilon'][m][n]
-                for key in self.transitions.keys():
-                    if key != 'epsilon':
-                        for n in range(Q):
-                            self.transitions[key][:,n] += self.transitions['epsilon'][:,m]*self.transitions[key][m][n]
-                self.final += self.transitions['epsilon'][:,m]*self.final[m]
-                self.transitions['epsilon'][:,m] = 0
-            self.transitions.pop('epsilon',None)
-        ####### 현재 객체 안의 값 바꾸지 말고 return 으로 객체 반환하기(현재 객체는 유지)??
-
-    """
-    Viterbi algorithm in "Representing Distributions over Strings with
-                          Automata and Grammars", Page 107
-    """
-    def viterbi(self, string):
-        #Algorithm 5.6: VITERBI
-        n = len(string)
-        V = np.zeros((n+1,self.nbS),np.float64)
-        Vpath = [["" for i in range(self.nbS)] for i in range(n+1)]
-        #initialise
-        V[0,:] = self.initial.transpose()[:]
-        for i in range(self.nbS):
-            Vpath[0][i] = str(i)
-        #for j in range(self.nbS):
-        #    V[0,j] = self.initial[j]
-
-        for i in range(1,n+1):
-            for j in range(self.nbS):
-                for k in range(self.nbS):
-                    if V[i][j] < V[i-1][k]*self.transitions[string[i-1]][k,j]:
-                        V[i][j] = V[i-1][k]*self.transitions[string[i-1]][k,j]
-                        Vpath[i][j] = Vpath[i-1][k]+str(j)
-        #Multiply by the halting probabilities
-        bestscore = 0
-        bestpath = ""
-        for j in range(self.nbS):
-            if V[n][j]*self.final[j] > bestscore:
-                bestscore = V[n][j]*self.final[j]
-                bestpath = Vpath[n][j]
-        return bestpath
 # a@b
 
-if __name__ == "__main__":
-    """
-    Input Examples from http://pageperso.lif.univ-mrs.fr/~remi.eyraud/scikit-splearn/
-    """
-    ex_initial = np.array([1, 0], dtype=np.float64)
-    ex_final = np.array([0, 1/4], dtype=np.float64)
+class PFA(R_Automata):
+    def __init__(self, nbL=0, nbS=0, initial=[], final=[], transitions=[]):
+        super(PFA, self).__init__(nbL, nbS, initial, final, transitions)
 
-    ex_transitions = {
-        'a': np.array([[1/2, 1/6],
-                        [0,  1/4]], dtype=np.float64),
-        'b': np.array([[0,   1/3],
-                        [1/4, 1/4]], dtype=np.float64)
-    }
-    """
-    #example in Chapter 5.2 Probabilistic automata P.113
-    ex_initial = np.array([1, 0, 0, 0], dtype=np.float64)
-    ex_final = np.array([0, 0.4, 0.2, 0.6], dtype=np.float64)
-    ex_transitions = {
-        'a': np.array([ [0, 0, 0.5, 0],
-                        [0, 0, 0, 0.1],
-                        [0, 0, 0, 0.1],
-                        [0, 0, 0, 0.2]], dtype=np.float64),
-        'epsilon' : np.array([[0, 0.5, 0, 0],
-                              [0, 0.5, 0, 0],
-                              [0, 0.2, 0.5, 0],
-                              [0, 0, 0.2, 0]], dtype=np.float64)
-    }
+    def probability_cond(self):
+        if abs(np.sum(self.initial) - 1.0) > 1e-8:
+            return False, "Wrong initial prob"
+        for q in range(self.nbS):
+            total_prob = .0
+            for transition in self.transitions.values():
+                total_prob += transition[q,:].sum()
+            total_prob += self.final[q]
+            if abs(total_prob - 1.0) > 1e-8:
+                return False, "Wrong transition prob at state %d"%(q)
+        return True, ""
 
-    ex_automaton = R_Automata(2,4,ex_initial, ex_final, ex_transitions)
-    print('probability of "',string,'":',ex_automaton.parse(string))
-    ex_automaton.epsilon_transition_removal()
-    """
-    """
-    string = 'a'
-    ex_automaton = R_Automata(2,2,ex_initial, ex_final, ex_transitions)
-    print('generate a string:', ex_automaton.generate())
-    #ex_automaton.epsilon_transition_removal()
-    print('probability of "',string,'":',ex_automaton.parse(string))
-    """
+    def get_reachable_state_flag(self):
+        # obtain all reachable states
+        reachable_flag = self.initial.astype(np.bool)
+        while True:
+            prev_flag = copy.deepcopy(reachable_flag)
+            reachable_states = np.nonzero(reachable_flag)
+            for transition in self.transitions.values():
+                reachable_flag += np.sum(transition[reachable_states].astype(np.bool), axis=1).astype(np.bool)
+            if not np.sum(np.logical_xor(prev_flag, reachable_flag)):
+                return reachable_flag
+            else:
+                del prev_flag
+                continue
 
-    #example of Fig.5.4 in Chapter 5.2 Probabilistic automata P.108
-    ex_initial = np.array([0.4, 0.6, 0, 0], dtype = np.float64)
-    ex_final = np.array([0, 0.6, 0.5, 0.3], dtype = np.float64)
-    ex_transitions = {
-        'a' : np.array([ [0, 0.5, 0, 0],
-                         [0, 0, 0, 0.2],
-                         [0, 0, 0.3, 0],
-                         [0, 0, 0, 0] ], dtype = np.float64),
-        'b' : np.array([[0.5, 0, 0, 0],
-                        [0, 0, 0.2, 0],
-                        [0, 0, 0, 0.2],
-                        [0.5, 0.2, 0, 0]], dtype = np.float64)
-        }
-    ex_automaton = R_Automata(2, 4, ex_initial, ex_final, ex_transitions)
-    print("bestpath(the sequence of the number of the states):",ex_automaton.viterbi('ab'))
+
+    def terminating_cond(self):
+        """
+        For all reachable states, there exists a path to a state which can be final
+        """
+        unreachable_flag = np.ones((self.nbS,), dtype=np.bool) ^ self.get_reachable_state_flag()
+        terminating_flag = self.final.astype(np.bool) + unreachable_flag
+        while True:
+            prev_flag = copy.deepcopy(terminating_flag)
+            terminating_states = np.nonzero(terminating_flag)
+            for transition in self.transitions.values():
+                terminating_flag += np.sum(transition[:,terminating_states[0]].astype(np.bool), axis=0).astype(np.bool)
+            if not np.sum(np.logical_xor(prev_flag, terminating_flag)):
+                if False in terminating_flag:
+                    return False, "nonterminating states %s"%(str([i for i in range(self.nbS) if i not in terminating_states]))
+                else:
+                    return True, ""
+            else:
+                del prev_flag
+                continue
+
+
+
+    def generate(self):
+        s = np.random.choice(self.nbS, p=self.initial)
+        generated = ""
+        while True:
+            # P(x) = sum_E P(x|E)p(E)
+            # get an alphabet
+            n_a = np.random.choice(self.nbL + 1,
+                                 p=[pr_a[s].sum() for pr_a in self.transitions.values()] + [self.final[s]])
+            if n_a == self.nbL:
+                return generated
+            else:
+                a = list(self.transitions.keys())[n_a]
+                generated += a
+
+            # get the next state
+            s = np.random.choice(self.nbS,
+                                 p=self.transitions[a][s, :] / np.sum(self.transitions[a][s,:]))
+        return generated
+
+
+    def prefix_prob(self, w):
+        """
+        Input           a PFA, a string w
+        Output          the probability of w appearing as a prefix
+        Author          Yu-Min Kim
+        Description     Simple Implementation
+        """
+
+        result = self.initial
+
+        for char in w:
+            result = result @ self.transitions[char]
+
+        return result.sum()
+
+    def prefix_prob2(self, w):
+        """
+        Input           a PFA, a string w
+        Output          the probability of w appearing as a prefix
+        Author          Yu-Min Kim
+        Description     More Complex Implementation
+        """
+
+        M = np.zeros((self.nbS, self.nbS))
+        for _, matrix in self.transitions.items():
+            M += matrix
+
+        I = np.eye(self.nbS)
+
+        M_w = np.eye(self.nbS)
+        for char in w:
+            M_w= M_w @ self.transitions[char]
+
+        return self.initial @ M_w @ inv(I - M) @ self.final
+
+    def suffix_prob(self, w):
+        """
+        Input           a PFA, a string w
+        Output          the probability of w appearing as a suffix
+        Author          Yu-Min Kim
+        """
+
+        M = np.zeros((self.nbS, self.nbS))
+        for _, matrix in self.transitions.items():
+            M += matrix
+
+        I = np.eye(self.nbS)
+
+        M_w = np.eye(self.nbS)
+        for char in w:
+            M_w= M_w @ self.transitions[char]
+
+        return self.initial @ inv(I - M) @ M_w @ self.final
+
+    def BMPS_exact(self, p):
+        """
+        Algorithm 2 in sampling-algorithm.pdf
+
+        Input           a PFA, p >= 0
+        Output          the string w such that PrA(w) > p or false if there is no such w
+        Description     Solve the decision problem BMPS(Bounded Most Probable String)
+                        which returns the string whose probability is greater than p and
+                        length is less than b.
+        Complexity      O((b * nbL * (nbs**2)) / p) if all operations are constant
+        Author          Yu-Min Kim
+        """
+
+        def calculate_b(p):
+            """
+            b is the bound parameter which constraints the length of the string w.
+            This function calculates the value of b.
+            """
+            M = np.zeros((self.nbS, self.nbS))
+            for _, matrix in self.transitions.items():
+                M += matrix
+
+            I = np.eye(self.nbS)
+
+            u = self.initial @ M @ (inv(I - M) ** 2) @ self.final
+
+            var = self.initial @ M @ (I + M) @ (inv(I - M) ** 3) @ self.final \
+                        - ( self.initial @ M @ (inv(I - M) ** 2) @ self.final ) ** 2
+
+            return  math.ceil(u + var / p)
+
+        # Calculate bound
+        b = calculate_b(p)
+        #print('b value', b)
+
+        # Initially, the result string is empty string (lambda)
+        w = ''
+
+        # Instantiate a Queue
+        Q = Queue()
+
+        # The probability of lambda string
+        p_0 = self.initial @ self.final
+
+        # If the probability of lambda stirng is larger than p, then return it.
+        if p_0 > p:
+            return w
+
+        # Enqueue the probability of the lambda string
+        Q.enqueue((w, self.initial))
+
+        while not Q.is_empty():
+            # w is string and V is a matrix
+            w, V = Q.dequeue().data
+            print('current string', w)
+
+            for char in self.alphabet:
+                #print('alphabet', char)
+                V_new = V @ self.transitions[char]
+
+                if V_new @ self.final > p:
+                    return w + char
+
+                if len(w) < b and V_new.sum() > p:
+                    #print('Enqueue!', w + char)
+                    Q.enqueue((w + char, V_new))
+
+        return False
+
+
+
+
+"""
+Input Examples from http://pageperso.lif.univ-mrs.fr/~remi.eyraud/scikit-splearn/
+"""
+ex_initial = np.array([1, 0], dtype=np.float64)
+ex_final = np.array([0, 1/4], dtype=np.float64)
+
+ex_transitions = {
+    'a': np.array([[1/2, 1/6],
+                    [0,  1/4]], dtype=np.float64),
+    'b': np.array([[0,   1/3],
+                    [1/4, 1/4]], dtype=np.float64)
+}
+
+ex_automaton = PFA(2,2,ex_initial, ex_final, ex_transitions)
+print('generate a string:', ex_automaton.generate())
+print('probability of "aba":',ex_automaton.parse('b'))
+print('most probable string: ', ex_automaton.BMPS_exact(0.083))
+print('prefix_prob of "aba":', ex_automaton.prefix_prob('b'))
+print('prefix_prob2 of "aba":', ex_automaton.prefix_prob2('b'))
+print('suffix_prob of "aba":', ex_automaton.suffix_prob('b'))
+print(ex_automaton.probability_cond())
+print(ex_automaton.terminating_cond())
