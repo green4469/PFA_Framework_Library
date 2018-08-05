@@ -3,6 +3,7 @@ import numpy as np
 from numpy.linalg import inv
 
 import math
+import copy
 
 from DS import Queue
 
@@ -49,19 +50,53 @@ class PFA(R_Automata):
         super(PFA, self).__init__(nbL, nbS, initial, final, transitions)
 
     def probability_cond(self):
-        if abs(np.sum(self.initial), 1.0) > 1e-8:
+        if abs(np.sum(self.initial) - 1.0) > 1e-8:
             return False, "Wrong initial prob"
         for q in range(self.nbS):
             total_prob = .0
-            for _, transition in self.transitions.items():
+            for transition in self.transitions.values():
                 total_prob += transition[q,:].sum()
             total_prob += self.final[q]
-            if abs(total_prob, 1.0) > 1e-8:
+            if abs(total_prob - 1.0) > 1e-8:
                 return False, "Wrong transition prob at state %d"%(q)
         return True, ""
 
-    def halting_cond(self):
-        pass
+    def get_reachable_state_flag(self):
+        # obtain all reachable states
+        reachable_flag = self.initial.astype(np.bool)
+        while True:
+            prev_flag = copy.deepcopy(reachable_flag)
+            reachable_states = np.nonzero(reachable_flag)
+            for transition in self.transitions.values():
+                reachable_flag += np.sum(transition[reachable_states].astype(np.bool), axis=1).astype(np.bool)
+            if not np.sum(np.logical_xor(prev_flag, reachable_flag)):
+                return reachable_flag
+            else:
+                del prev_flag
+                continue
+
+
+    def terminating_cond(self):
+        """
+        For all reachable states, there exists a path to a state which can be final
+        """
+        unreachable_flag = np.ones((self.nbS,), dtype=np.bool) ^ self.get_reachable_state_flag()
+        terminating_flag = self.final.astype(np.bool) + unreachable_flag
+        while True:
+            prev_flag = copy.deepcopy(terminating_flag)
+            terminating_states = np.nonzero(terminating_flag)
+            for transition in self.transitions.values():
+                terminating_flag += np.sum(transition[:,terminating_states[0]].astype(np.bool), axis=0).astype(np.bool)
+            if not np.sum(np.logical_xor(prev_flag, terminating_flag)):
+                if False in terminating_flag:
+                    return False, "nonterminating states %s"%(str([i for i in range(self.nbS) if i not in terminating_states]))
+                else:
+                    return True, ""
+            else:
+                del prev_flag
+                continue
+
+
 
     def generate(self):
         s = np.random.choice(self.nbS, p=self.initial)
@@ -69,16 +104,17 @@ class PFA(R_Automata):
         while True:
             # P(x) = sum_E P(x|E)p(E)
             # get an alphabet
-            a = np.random.choice(self.nbL + 1,
+            n_a = np.random.choice(self.nbL + 1,
                                  p=[pr_a[s].sum() for pr_a in self.transitions.values()] + [self.final[s]])
-            if a == self.nbL:
+            if n_a == self.nbL:
                 return generated
             else:
+                a = list(self.transitions.keys())[n_a]
                 generated += a
 
             # get the next state
             s = np.random.choice(self.nbS,
-                                 p=self.transitions[a][s])
+                                 p=self.transitions[a][s, :] / np.sum(self.transitions[a][s,:]))
         return generated
 
 
@@ -87,6 +123,7 @@ class PFA(R_Automata):
         Input           a PFA, a string w
         Output          the probability of w appearing as a prefix
         Author          Yu-Min Kim
+        Description     Simple Implementation
         """
 
         result = self.initial
@@ -97,6 +134,12 @@ class PFA(R_Automata):
         return result.sum()
 
     def prefix_prob2(self, w):
+        """
+        Input           a PFA, a string w
+        Output          the probability of w appearing as a prefix
+        Author          Yu-Min Kim
+        Description     More Complex Implementation
+        """
 
         M = np.zeros((self.nbS, self.nbS))
         for _, matrix in self.transitions.items():
@@ -216,9 +259,11 @@ ex_transitions = {
 }
 
 ex_automaton = PFA(2,2,ex_initial, ex_final, ex_transitions)
-#print('generate a string:', ex_automaton.generate())
-print('probability of "aba":',ex_automaton.parse('aba'))
-print('most probable string: ', ex_automaton.BMPS_exact(0.1))
-print('prefix_prob of "aba":', ex_automaton.prefix_prob('aba'))
-print('prefix_prob2 of "aba":', ex_automaton.prefix_prob2('aba'))
-print('suffix_prob of "aba":', ex_automaton.suffix_prob('aba'))
+print('generate a string:', ex_automaton.generate())
+print('probability of "aba":',ex_automaton.parse('b'))
+print('most probable string: ', ex_automaton.BMPS_exact(0.083))
+print('prefix_prob of "aba":', ex_automaton.prefix_prob('b'))
+print('prefix_prob2 of "aba":', ex_automaton.prefix_prob2('b'))
+print('suffix_prob of "aba":', ex_automaton.suffix_prob('b'))
+print(ex_automaton.probability_cond())
+print(ex_automaton.terminating_cond())
