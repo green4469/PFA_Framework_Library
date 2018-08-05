@@ -74,7 +74,7 @@ class PFA(R_Automata):
         """
         For all reachable states, there exists a path to a state which can be final
         """
-        unreachable_flag = self.ones((self.nbS,), dtype=np.bool) ^ self.get_reachable_state_indices()
+        unreachable_flag = np.ones((self.nbS,), dtype=np.bool) ^ self.get_reachable_state_indices()
         terminating_flag = self.final.astype(np.bool) + unreachable_flag
         while True:
             prev_flag = copy.deepcopy(terminating_flag)
@@ -100,15 +100,15 @@ class PFA(R_Automata):
             # get an alphabet
             n_a = np.random.choice(self.nbL + 1,
                                  p=[pr_a[s].sum() for pr_a in self.transitions.values()] + [self.final[s]])
-            a = list(self.transitions.keys())[a]
             if n_a == self.nbL:
                 return generated
             else:
+                a = list(self.transitions.keys())[n_a]
                 generated += a
 
             # get the next state
             s = np.random.choice(self.nbS,
-                                 p=self.transitions[a][s])
+                                 p=self.transitions[a][s, :] / np.sum(self.transitions[a][s,:]))
         return generated
 
 
@@ -127,6 +127,6 @@ ex_transitions = {
                     [1/4, 1/4]], dtype=np.float64)
 }
 
-ex_automaton = R_Automata(2,2,ex_initial, ex_final, ex_transitions)
+ex_automaton = PFA(2,2,ex_initial, ex_final, ex_transitions)
 print('generate a string:', ex_automaton.generate())
 print('probability of "aba":',ex_automaton.parse('aba'))
