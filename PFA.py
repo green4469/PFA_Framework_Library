@@ -1,54 +1,63 @@
 import numpy as np
-
 from numpy.linalg import inv
 
 import math
 import copy
 
+from RA import RA
+
 from DS import Queue
 
-class R_Automata(object):
 
-    def __init__(self, nbL=0, nbS=0, initial=[], final=[], transitions=[]):
-        """
-        Constructor of R automaton
-        """
-        self.nbL = nbL
-        self.nbS = nbS
-        self.initial = initial
-        self.final = final
-        self.transitions = transitions
-        self.alphabet = self.transitions.keys()
-
-    """
-    Forward algorithm in "Representing Distributions over Strings with
-                          Automata and Grammars", Page 105
-    """
-    def parse(self, string):
-        #Algorithm 5.2: FORWARD.
-        n = int(len(string))
-        Q = self.nbS
-        F = np.zeros((n+1, Q), dtype=np.float64) #F[n][s] = Pr_A(x,q_s), string x = a_1 a_2 ... a_n
-
-        #initialize
-        F[0] = self.initial
-
-        for i in range(1,n+1):
-            key = string[i-1]
-            F[i] += F[i-1]@self.transitions[key][:,:]
-
-        #Algorithm 5.3: Computing the probability of a string with FORWARD.
-        T = F[n]@np.transpose(self.final)
-
-        return T
-
-
-# a@b
-
-class PFA(R_Automata):
+class PFA(RA):
     def __init__(self, nbL=0, nbS=0, initial=[], final=[], transitions=[]):
         super(PFA, self).__init__(nbL, nbS, initial, final, transitions)
 
+    # Hak-Su
+    """
+    Viterbi algorithm in "Representing Distributions over Strings with
+                          Automata and Grammars", Page 107
+    """
+    def viterbi(self, string):
+        #Algorithm 5.6: VITERBI
+        n = len(string)
+        V = np.zeros((n+1,self.nbS),np.float64)
+        Vpath = [["" for i in range(self.nbS)] for i in range(n+1)]
+        #initialise
+        V[0,:] = self.initial.transpose()[:]
+        for i in range(self.nbS):
+            Vpath[0][i] = str(i)
+        #for j in range(self.nbS):
+        #    V[0,j] = self.initial[j]
+
+        for i in range(1,n+1):
+            for j in range(self.nbS):
+                #below is reducing time complexity but there are some problems with Vpath
+                temp_ndarray = V[i-1][:]*self.transitions[string[i-1]].transpose()[j,:]
+                V[i][j] = max(temp_ndarray)
+                Vpath[i][j] = Vpath[i-1][np.argmax(temp_ndarray)]+str(j)
+                """
+                #below is the original algorithm
+                for k in range(self.nbS):
+                   if V[i][j] < V[i-1][k]*self.transitions[string[i-1]][k,j]:
+                        V[i][j] = V[i-1][k]*self.transitions[string[i-1]][k,j]
+                        Vpath[i][j] = Vpath[i-1][k]+str(j) 
+                """
+        #Multiply by the halting probabilities
+        bestscore = 0
+        bestpath = ""
+        temp_ndarray = V[n][:]*self.final[:]
+        bestscore = max(temp_ndarray)
+        bestpath = Vpath[n][np.argmax(temp_ndarray)]
+        """
+        for j in range(self.nbS):
+            if V[n][j]*self.final[j] > bestscore:
+                bestscore = V[n][j]*self.final[j]
+                bestpath = Vpath[n][j]
+        """
+        return bestpath, bestscore #Is the bestsocre necessary to be returned?
+
+    # Myeong-Jang
     def probability_cond(self):
         if abs(np.sum(self.initial) - 1.0) > 1e-8:
             return False, "Wrong initial prob"
@@ -68,7 +77,7 @@ class PFA(R_Automata):
             prev_flag = copy.deepcopy(reachable_flag)
             reachable_states = np.nonzero(reachable_flag)
             for transition in self.transitions.values():
-                reachable_flag += np.sum(transition[reachable_states].astype(np.bool), axis=1).astype(np.bool)
+                reachable_flag += np.sum(transition[reachable_states].astype(np.bool), axis=0).astype(np.bool)
             if not np.sum(np.logical_xor(prev_flag, reachable_flag)):
                 return reachable_flag
             else:
@@ -86,7 +95,7 @@ class PFA(R_Automata):
             prev_flag = copy.deepcopy(terminating_flag)
             terminating_states = np.nonzero(terminating_flag)
             for transition in self.transitions.values():
-                terminating_flag += np.sum(transition[:,terminating_states[0]].astype(np.bool), axis=0).astype(np.bool)
+                terminating_flag += np.sum(transition[:,terminating_states[0]].astype(np.bool), axis=1).astype(np.bool)
             if not np.sum(np.logical_xor(prev_flag, terminating_flag)):
                 if False in terminating_flag:
                     return False, "nonterminating states %s"%(str([i for i in range(self.nbS) if i not in terminating_states]))
@@ -118,6 +127,7 @@ class PFA(R_Automata):
         return generated
 
 
+    # Yu-Min
     def prefix_prob(self, w):
         """
         Input           a PFA, a string w
@@ -241,29 +251,3 @@ class PFA(R_Automata):
                     Q.enqueue((w + char, V_new))
         
         return False
-
-
-
-
-"""
-Input Examples from http://pageperso.lif.univ-mrs.fr/~remi.eyraud/scikit-splearn/
-"""
-ex_initial = np.array([1, 0], dtype=np.float64)
-ex_final = np.array([0, 1/4], dtype=np.float64)
-
-ex_transitions = {
-    'a': np.array([[1/2, 1/6],
-                    [0,  1/4]], dtype=np.float64),
-    'b': np.array([[0,   1/3],
-                    [1/4, 1/4]], dtype=np.float64)
-}
-
-ex_automaton = PFA(2,2,ex_initial, ex_final, ex_transitions)
-print('generate a string:', ex_automaton.generate())
-print('probability of "aba":',ex_automaton.parse('b'))
-print('most probable string: ', ex_automaton.BMPS_exact(0.083))
-print('prefix_prob of "aba":', ex_automaton.prefix_prob('b'))
-print('prefix_prob2 of "aba":', ex_automaton.prefix_prob2('b'))
-print('suffix_prob of "aba":', ex_automaton.suffix_prob('b'))
-print(ex_automaton.probability_cond())
-print(ex_automaton.terminating_cond())
