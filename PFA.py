@@ -17,18 +17,22 @@ class PFA(RA):
     """
     Viterbi algorithm in "Representing Distributions over Strings with
                           Automata and Grammars", Page 107
+
+    Input           a string w
+    Output          the highest probability of w along with one path,
+                    the sequence of the states(from initial states to final states) of the path.
+    Description     Viterbi algorithm Implementation
     """
     def viterbi(self, string):
         #Algorithm 5.6: VITERBI
         n = len(string)
         V = np.zeros((n+1,self.nbS),np.float64)
         Vpath = [["" for i in range(self.nbS)] for i in range(n+1)]
+
         #initialise
         V[0,:] = self.initial.transpose()[:]
         for i in range(self.nbS):
             Vpath[0][i] = str(i)
-        #for j in range(self.nbS):
-        #    V[0,j] = self.initial[j]
 
         for i in range(1,n+1):
             for j in range(self.nbS):
@@ -36,25 +40,12 @@ class PFA(RA):
                 temp_ndarray = V[i-1][:]*self.transitions[string[i-1]].transpose()[j,:]
                 V[i][j] = max(temp_ndarray)
                 Vpath[i][j] = Vpath[i-1][np.argmax(temp_ndarray)]+str(j)
-                """
-                #below is the original algorithm
-                for k in range(self.nbS):
-                   if V[i][j] < V[i-1][k]*self.transitions[string[i-1]][k,j]:
-                        V[i][j] = V[i-1][k]*self.transitions[string[i-1]][k,j]
-                        Vpath[i][j] = Vpath[i-1][k]+str(j) 
-                """
         #Multiply by the halting probabilities
         bestscore = 0
         bestpath = ""
         temp_ndarray = V[n][:]*self.final[:]
         bestscore = max(temp_ndarray)
         bestpath = Vpath[n][np.argmax(temp_ndarray)]
-        """
-        for j in range(self.nbS):
-            if V[n][j]*self.final[j] > bestscore:
-                bestscore = V[n][j]*self.final[j]
-                bestpath = Vpath[n][j]
-        """
         return bestpath, bestscore #Is the bestsocre necessary to be returned?
 
     # Myeong-Jang
