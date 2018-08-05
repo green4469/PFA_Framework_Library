@@ -42,7 +42,7 @@ def test(input_file, string):
         
         print('generate a string:', at.generate())
         print('probability of {}:'.format(string), at.parse(string))
-        #print('most probable string:', at.BMPS_exact(0.083))
+        print('most probable string:', at.BMPS_exact(0.0000001))
         print('prefix_prob of {}:'.format(string), at.prefix_prob(string))
         print('prefix_prob2 of {}:'.format(string), at.prefix_prob2(string))
         print('suffix_prob of {}:'.format(string), at.suffix_prob(string))

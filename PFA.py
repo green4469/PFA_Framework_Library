@@ -237,7 +237,7 @@ class PFA(RA):
         while not Q.is_empty():
             # w is string and V is a matrix
             w, V = Q.dequeue().data
-            print('current string', w)
+            #print('current string', w)
 
             for char in self.alphabet:
                 #print('alphabet', char)
