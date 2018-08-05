@@ -1,5 +1,10 @@
 import numpy as np
+
+from numpy.linalg import inv
+
 import math
+
+from DS import Queue
 
 class R_Automata(object):
 
@@ -12,6 +17,7 @@ class R_Automata(object):
         self.initial = initial
         self.final = final
         self.transitions = transitions
+        self.alphabet = self.transitions.keys()
 
     """
     Forward algorithm in "Representing Distributions over Strings with
@@ -76,6 +82,124 @@ class PFA(R_Automata):
         return generated
 
 
+    def prefix_prob(self, w):
+        """
+        Input           a PFA, a string w
+        Output          the probability of w appearing as a prefix
+        Author          Yu-Min Kim
+        """
+
+        result = self.initial
+        
+        for char in w:
+            result = result @ self.transitions[char]
+
+        return result.sum()
+
+    def prefix_prob2(self, w):
+
+        M = np.zeros((self.nbS, self.nbS))
+        for _, matrix in self.transitions.items():
+            M += matrix
+
+        I = np.eye(self.nbS)
+
+        M_w = np.eye(self.nbS)
+        for char in w:
+            M_w= M_w @ self.transitions[char]
+
+        return self.initial @ M_w @ inv(I - M) @ self.final
+
+    def suffix_prob(self, w):
+        """
+        Input           a PFA, a string w
+        Output          the probability of w appearing as a suffix
+        Author          Yu-Min Kim
+        """
+
+        M = np.zeros((self.nbS, self.nbS))
+        for _, matrix in self.transitions.items():
+            M += matrix
+
+        I = np.eye(self.nbS)
+
+        M_w = np.eye(self.nbS)
+        for char in w:
+            M_w= M_w @ self.transitions[char]
+
+        return self.initial @ inv(I - M) @ M_w @ self.final
+
+    def BMPS_exact(self, p):
+        """
+        Algorithm 2 in sampling-algorithm.pdf
+        
+        Input           a PFA, p >= 0
+        Output          the string w such that PrA(w) > p or false if there is no such w
+        Description     Solve the decision problem BMPS(Bounded Most Probable String)
+                        which returns the string whose probability is greater than p and
+                        length is less than b.
+        Complexity      O((b * nbL * (nbs**2)) / p) if all operations are constant
+
+        Author          Yu-Min Kim
+        """
+
+        def calculate_b(p):
+            """
+            b is the bound parameter which constraints the length of the string w.
+            This function calculates the value of b.
+            """
+            M = np.zeros((self.nbS, self.nbS))
+            for _, matrix in self.transitions.items():
+                M += matrix
+            
+            I = np.eye(self.nbS)
+
+            u = self.initial @ M @ (inv(I - M) ** 2) @ self.final
+
+            var = self.initial @ M @ (I + M) @ (inv(I - M) ** 3) @ self.final \
+                        - ( self.initial @ M @ (inv(I - M) ** 2) @ self.final ) ** 2 
+
+            return  math.ceil(u + var / p)
+
+        # Calculate bound
+        b = calculate_b(p)
+        #print('b value', b)
+
+        # Initially, the result string is empty string (lambda)
+        w = ''
+
+        # Instantiate a Queue
+        Q = Queue()
+
+        # The probability of lambda string
+        p_0 = self.initial @ self.final
+        
+        # If the probability of lambda stirng is larger than p, then return it.
+        if p_0 > p:
+            return w
+        
+        # Enqueue the probability of the lambda string
+        Q.enqueue((w, self.initial))
+
+        while not Q.is_empty():
+            # w is string and V is a matrix
+            w, V = Q.dequeue().data
+            print('current string', w)
+
+            for char in self.alphabet:
+                #print('alphabet', char)
+                V_new = V @ self.transitions[char]
+
+                if V_new @ self.final > p:
+                    return w + char
+
+                if len(w) < b and V_new.sum() > p:
+                    #print('Enqueue!', w + char)
+                    Q.enqueue((w + char, V_new))
+        
+        return False
+
+
 
 
 """
@@ -91,6 +215,10 @@ ex_transitions = {
                     [1/4, 1/4]], dtype=np.float64)
 }
 
-ex_automaton = R_Automata(2,2,ex_initial, ex_final, ex_transitions)
-print('generate a string:', ex_automaton.generate())
+ex_automaton = PFA(2,2,ex_initial, ex_final, ex_transitions)
+#print('generate a string:', ex_automaton.generate())
 print('probability of "aba":',ex_automaton.parse('aba'))
+print('most probable string: ', ex_automaton.BMPS_exact(0.1))
+print('prefix_prob of "aba":', ex_automaton.prefix_prob('aba'))
+print('prefix_prob2 of "aba":', ex_automaton.prefix_prob2('aba'))
+print('suffix_prob of "aba":', ex_automaton.suffix_prob('aba'))
