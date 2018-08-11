@@ -13,6 +13,21 @@ class PFA(RA):
     def __init__(self, nbL=0, nbS=0, initial=[], final=[], transitions=[]):
         super(PFA, self).__init__(nbL, nbS, initial, final, transitions)
 
+        # Precalculate for the reason of complexity. 
+        M = np.zeros((self.nbS, self.nbS))
+        for _, matrix in self.transitions.items():
+            M += matrix
+        self.Msigma = M
+
+        I = np.eye(self.nbS)
+        self.I = I  # Identity Matrix
+
+        self.inv_I_M = inv(I-M)  # Inverse Matrix
+
+        self.u = self.initial @ self.Msigma @ (self.inv_I_M ** 2) @ self.final  # mean of distribution
+        self.var = self.initial @ self.Msigma @ (self.I + self.Msigma) @ (self.inv_I_M ** 3) @ self.final \
+                    - ( self.initial @ self.Msigma @ (self.inv_I_M ** 2) @ self.final ) ** 2  # variance of distribution              
+
     # Hak-Su
     """
     Viterbi algorithm in "Representing Distributions over Strings with
@@ -41,7 +56,7 @@ class PFA(RA):
                 for k in range(self.nbS):
                    if V[i][j] < V[i-1][k]*self.transitions[string[i-1]][k,j]:
                         V[i][j] = V[i-1][k]*self.transitions[string[i-1]][k,j]
-                        Vpath[i][j] = Vpath[i-1][k]+str(j) 
+                        Vpath[i][j] = Vpath[i-1][k]+str(j)
                 """
         #Multiply by the halting probabilities
         bestscore = 0
@@ -106,7 +121,6 @@ class PFA(RA):
                 continue
 
 
-
     def generate(self):
         s = np.random.choice(self.nbS, p=self.initial)
         generated = ""
@@ -137,7 +151,7 @@ class PFA(RA):
         """
 
         result = self.initial
-        
+
         for char in w:
             result = result @ self.transitions[char]
 
@@ -151,17 +165,11 @@ class PFA(RA):
         Description     More Complex Implementation
         """
 
-        M = np.zeros((self.nbS, self.nbS))
-        for _, matrix in self.transitions.items():
-            M += matrix
-
-        I = np.eye(self.nbS)
-
         M_w = np.eye(self.nbS)
         for char in w:
             M_w= M_w @ self.transitions[char]
 
-        return self.initial @ M_w @ inv(I - M) @ self.final
+        return self.initial @ M_w @ self.inv_I_M @ self.final
 
     def suffix_prob(self, w):
         """
@@ -169,54 +177,28 @@ class PFA(RA):
         Output          the probability of w appearing as a suffix
         Author          Yu-Min Kim
         """
-
-        M = np.zeros((self.nbS, self.nbS))
-        for _, matrix in self.transitions.items():
-            M += matrix
-
-        I = np.eye(self.nbS)
-
+        
         M_w = np.eye(self.nbS)
         for char in w:
             M_w= M_w @ self.transitions[char]
 
-        return self.initial @ inv(I - M) @ M_w @ self.final
+        return self.initial @ self.inv_I_M @ M_w @ self.final
 
     def BMPS_exact(self, p):
         """
         Algorithm 2 in sampling-algorithm.pdf
-        
+
         Input           a PFA, p >= 0
         Output          the string w such that PrA(w) > p or false if there is no such w
-        Description     Solve the decision problem BMPS(Bounded Most Probable String)
-                        which returns the string whose probability is greater than p and
-                        length is less than b.
+        Description     Solve  BMPS(Bounded Most Probable String) which returns the string 
+                        whose probability is greater than p and length is less than b.
         Complexity      O((b * nbL * (nbs**2)) / p) if all operations are constant
 
         Author          Yu-Min Kim
         """
 
-        def calculate_b(p):
-            """
-            b is the bound parameter which constraints the length of the string w.
-            This function calculates the value of b.
-            """
-            M = np.zeros((self.nbS, self.nbS))
-            for _, matrix in self.transitions.items():
-                M += matrix
-            
-            I = np.eye(self.nbS)
-
-            u = self.initial @ M @ (inv(I - M) ** 2) @ self.final
-
-            var = self.initial @ M @ (I + M) @ (inv(I - M) ** 3) @ self.final \
-                        - ( self.initial @ M @ (inv(I - M) ** 2) @ self.final ) ** 2 
-
-            return  math.ceil(u + var / p)
-
         # Calculate bound
-        b = calculate_b(p)
-        #print('b value', b)
+        b = math.ceil(self.u + self.var/p)
 
         # Initially, the result string is empty string (lambda)
         w = ''
@@ -226,11 +208,11 @@ class PFA(RA):
 
         # The probability of lambda string
         p_0 = self.initial @ self.final
-        
+
         # If the probability of lambda stirng is larger than p, then return it.
         if p_0 > p:
             return w
-        
+
         # Enqueue the probability of the lambda string
         Q.enqueue((w, self.initial))
 
@@ -249,5 +231,5 @@ class PFA(RA):
                 if len(w) < b and V_new.sum() > p:
                     #print('Enqueue!', w + char)
                     Q.enqueue((w + char, V_new))
-        
+
         return False

@@ -17,6 +17,7 @@ class RA(object):
         self.final = final
         self.transitions = transitions
         self.alphabet = self.transitions.keys()
+        self.epsilon_transition_removal()
 
     def print(self):
         """
@@ -78,14 +79,16 @@ class RA(object):
 
             #return new Automata
             self.nbS = Q_prime
-            self.initial[:] = initial_prime[:]
-            self.final[:] = final_prime[:]
+            self.initial = initial_prime
+            self.final = final_prime
             
             #new transition with just one initial state q_0
             for key in self.transitions.keys():
                 temp = self.transitions[key][:,:]
                 self.transitions[key] = np.zeros((Q_prime,Q_prime), np.float64)
                 self.transitions[key][1:Q_prime, 1:Q_prime] = temp[:,:]
+            self.transitions['epsilon'] = np.zeros((Q_prime,Q_prime),np.float64)
+            self.nbL += 1
             self.transitions['epsilon'][0,1:Q_prime] = initial_original[:]
         """
         Step 2: Algorithm 5.8 iteratively removes a epsilon-loop if there is one,
@@ -122,5 +125,6 @@ class RA(object):
                 self.final += self.transitions['epsilon'][:,m]*self.final[m]
                 self.transitions['epsilon'][:,m] = 0
             self.transitions.pop('epsilon',None)
+            self.nbL -= 1
         ####### 현재 객체 안의 값 바꾸지 말고 return 으로 객체 반환하기(현재 객체는 유지)??
     

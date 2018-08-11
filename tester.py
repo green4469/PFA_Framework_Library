@@ -37,6 +37,7 @@ def test(input_file, string):
             pos += nbS
         
         at = PFA(nbL, nbS, initial, final, transitions)
+        
         at.print()
 
         
