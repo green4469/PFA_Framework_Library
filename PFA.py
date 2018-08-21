@@ -4,6 +4,8 @@ from numpy.linalg import inv
 import math
 import copy
 
+import editdistance
+
 from RA import RA
 
 from DS import Queue
@@ -13,7 +15,7 @@ class PFA(RA):
     def __init__(self, nbL=0, nbS=0, initial=[], final=[], transitions=[]):
         super(PFA, self).__init__(nbL, nbS, initial, final, transitions)
 
-        # Precalculate for the reason of complexity. 
+        # Precalculate for the reason of complexity.
         M = np.zeros((self.nbS, self.nbS))
         for _, matrix in self.transitions.items():
             M += matrix
@@ -26,7 +28,7 @@ class PFA(RA):
 
         self.u = self.initial @ self.Msigma @ (self.inv_I_M ** 2) @ self.final  # mean of distribution
         self.var = self.initial @ self.Msigma @ (self.I + self.Msigma) @ (self.inv_I_M ** 3) @ self.final \
-                    - ( self.initial @ self.Msigma @ (self.inv_I_M ** 2) @ self.final ) ** 2  # variance of distribution              
+                    - ( self.initial @ self.Msigma @ (self.inv_I_M ** 2) @ self.final ) ** 2  # variance of distribution
 
     # Hak-Su
     """
@@ -177,7 +179,7 @@ class PFA(RA):
         Output          the probability of w appearing as a suffix
         Author          Yu-Min Kim
         """
-        
+
         M_w = np.eye(self.nbS)
         for char in w:
             M_w= M_w @ self.transitions[char]
@@ -190,7 +192,7 @@ class PFA(RA):
 
         Input           a PFA, p >= 0
         Output          the string w such that PrA(w) > p or false if there is no such w
-        Description     Solve  BMPS(Bounded Most Probable String) which returns the string 
+        Description     Solve  BMPS(Bounded Most Probable String) which returns the string
                         whose probability is greater than p and length is less than b.
         Complexity      O((b * nbL * (nbs**2)) / p) if all operations are constant
 
@@ -199,7 +201,6 @@ class PFA(RA):
 
         # Calculate bound
         b = math.ceil(self.u + self.var/p)
-
         # Initially, the result string is empty string (lambda)
         w = ''
 
@@ -233,3 +234,86 @@ class PFA(RA):
                     Q.enqueue((w + char, V_new))
 
         return False
+
+    def MPS(self):
+        epsilon = 0.0001
+        low = 0.0
+        high = 1.0
+
+        # Continuous Bisection Search
+        while True:
+            mid = (low + high) / 2
+            w = self.BMPS_exact(mid)
+
+            # If w is False, then lower the threshold
+            if w == False:
+                high = mid
+            # Else then higher the threshold
+            else:
+                low = mid
+
+            # If high-low is lower than epsilon and w is not False, then break
+            if high - low < epsilon and w != False:
+                return w
+
+    def k_MPS(self, x, k=1):
+        """
+        Return MPS where the string is within 1 hamming distance with given string x (k = 1)
+        Input: an Automaton, a string x, an positive integer k
+        Output: MPS under k
+        """
+
+        """ Naive algorithm
+        strings = []  # all possible strings derived from x within hamming distance 1
+
+        # Make the given string x to a list
+        x_list = list(x)
+
+        # Add all possible strings to list
+        for i in range(len(x_list)):
+            original = x_list[i]
+            for char in self.alphabet:
+                x_list[i] = char
+                strings.append(''.join(x_list))
+            x_list[i] = original
+
+        # Delete duplicates and sort
+        strings = set(strings)
+        strings = list(strings)
+        strings.sort()
+        print(strings)
+        """
+
+        x_list = list(x)
+
+        # Find prefix probabilities
+        prefix_list = []
+        initial = self.initial
+        prefix_list.append(initial)
+
+        for char in x_list:
+            initial = initial @ self.transitions[char]
+            prefix_list.append(initial)
+
+
+        # Find prefix probabilities
+        suffix_list = []
+        final = self.final
+        suffix_list.append(final)
+        x_list.reverse()
+        for char in x_list:
+            final = self.transitions[char] @ initial
+            suffix_list.append(final)
+        x_list.reverse()
+
+        # Calculate all probabilities of possible strings where (k=1, x)
+        prob = 0
+        MPS = []
+        for i in range(len(x_list)):
+            for char in self.alphabet:
+                if prefix_list[i] @ self.transitions[char] @ suffix_list[len(x_list)-1-i] > prob:
+                    prob = prefix_list[i] @ self.transitions[char] @ suffix_list[len(x_list)-1-i]
+                    MPS = x_list
+                    MPS[i] = char
+
+        return ''.join(MPS)
