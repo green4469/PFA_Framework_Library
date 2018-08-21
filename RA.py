@@ -63,7 +63,7 @@ class RA(object):
 
     """
     Input           None
-    Output          the automaton without epsilong(lambda) transitions
+    Output          the automaton without epsilon(lambda) transitions
     Description     
     """
     def epsilon_transition_removal(self):
