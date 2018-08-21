@@ -37,6 +37,10 @@ class RA(object):
     """
     Forward algorithm in "Representing Distributions over Strings with
                           Automata and Grammars", Page 105
+
+    Input           a string w
+    Output          the probability of parsing of w in automaton
+    Description     Forward algorithm implementation
     """
     def parse(self, string):
         if 'epsilon' in self.transitions:
@@ -57,6 +61,12 @@ class RA(object):
         T = F[n,:]@np.transpose(self.final[:])
         return T
 
+
+    """
+    Input           None
+    Output          the automaton without epsilon(lambda) transitions
+    Description     
+    """
     def epsilon_transition_removal(self):
         """
         Step 1: If there is more than one initial state, add a new initial state and epsilon-transitions
@@ -127,4 +137,5 @@ class RA(object):
             self.transitions.pop('epsilon',None)
             self.nbL -= 1
         ####### 현재 객체 안의 값 바꾸지 말고 return 으로 객체 반환하기(현재 객체는 유지)??
+        ####### or 현재 객체 안의 값을 바꾸고 return 없음.(<<----현재 이것)
     
