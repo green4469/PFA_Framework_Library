@@ -71,18 +71,22 @@ class LevenshteinAutomaton:
         self.transitions = {}
         for c in self.string:
             self.transitions[c] = np.zeros((nbS, nbS), dtype=np.float64)
-        self.transitions['*'] = np.zeros((nbS,nbS),dtype=np.float64)
+        self.transitions[''] = np.zeros((nbS,nbS),dtype=np.float64)
         for transition in old_transitions:
             alphabet = transition[1]
             from_state = transition[0]
             to_state = transition[2]
-            self.transitions[alphabet][from_state,to_state] = 1
-        if np.count_nonzero(self.transitions['*']) == 0:
-            self.transitions.pop('*',None)
+            if alphabet is '*':
+                for key in self.transitions:
+                    self.transitions[key][from_state,to_state] = 1
+            else:
+                self.transitions[alphabet][from_state,to_state] = 1
+        if np.count_nonzero(self.transitions['']) == 0:
+            self.transitions.pop('',None)
 
         
-lev = LevenshteinAutomaton("ab", 1)
-#lev.transitions_redefine()
+lev = LevenshteinAutomaton("a", 0)
+lev.transitions_redefine()
 
 """
 state0 = lev.start()
