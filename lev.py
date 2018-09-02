@@ -85,8 +85,7 @@ class LevenshteinAutomaton:
             self.transitions.pop('',None)
 
         
-lev = LevenshteinAutomaton("a", 0)
-lev.transitions_redefine()
+lev = LevenshteinAutomaton("ab", 1)
 
 """
 state0 = lev.start()
@@ -108,3 +107,8 @@ print(lev.transitions)
 print("-------------------------------------")
 print("accepting_states")
 print(lev.accepting_states)
+
+lev.transitions_redefine()
+print("-------------------------------------")
+print("transitions matrices")
+print(lev.transitions)
