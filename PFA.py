@@ -316,6 +316,23 @@ class PFA(RA):
 
         return ''.join(MPS)
 
-    def intersect_with_DFA(self, DFA):
-        Q = self.alphabet
+def intersect_with_DFA(P, D):
+    # Myeong-Jang
+    Q = [t for t in zip(range(P.nbS, D.nbS))]
+    nbS = len(Q)
+    nbL = P.nbL
+    alphabet = P.alphabet
+    initial = [P.initial[q[0]] * int(q[1]==D.initial) for q in Q]
+    initial = np.array(initial)
+    final = [P.final[q[0]] * int(q[1] in D.final) for q in Q]
+    final = np.array(final)
+    transitions = {c:np.zeros((nbS, nbS)) for c in alphabet}
+    state_mapping = {q:q[0]*D.nbS+q[1] for q in Q}
+    for q, q_ in zip(Q, Q):
+        for c in P.alphabet:
+            if c in D.alphabet and D.transitions[(q[1], c)] == q_[1]:
+                transitions[c][state_mapping[q],state_mapping[q_]] = P.transitions[c][q[0], q_[0]]
+            else:
+                transitions[c][state_mapping[q],state_mapping[q_]] = 0
+    return PFA(nbL, nbS, initial, final, transitions) # sub-PFA
 
