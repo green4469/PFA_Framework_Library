@@ -335,5 +335,5 @@ def intersect_with_DFA(P, D):
                 transitions[c][state_mapping[q],state_mapping[q_]] = P.transitions[c][q[0], q_[0]]
             else:
                 transitions[c][state_mapping[q],state_mapping[q_]] = 0
-    return PFA(nbL, nbS, initial, final, transitions) # sub-PFA
+    return RA(nbL, nbS, initial, final, transitions) # sub-PFA
 
