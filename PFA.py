@@ -315,3 +315,7 @@ class PFA(RA):
                     MPS[i] = char
 
         return ''.join(MPS)
+
+    def intersect_with_DFA(self, DFA):
+        Q = self.alphabet
+
