@@ -17,7 +17,7 @@ class DFA:
                 if(np.count_nonzero(transitions[alphabet][current_state]) > 1):
                     None
                     #raise InvalidDFA
-                next_state = np.where(transitions[alphabet][current_state] == 1)
+                next_state = np.where(transitions[alphabet][current_state] == 1)[0][0]
                 self.transitions[(current_state,alphabet)] = next_state 
         self.final_states = final_states
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
                                    [0,0,1],
                                    [0,0,1]],dtype = np.float64),
                    'b' : np.array([[0,0,1],
-                                   [0,1,1],
+                                   [0,1,0],
                                    [0,0,1]],dtype = np.float64)}
     states = [0,1,2]
     final_states = [2]
