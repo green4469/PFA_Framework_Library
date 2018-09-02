@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.linalg import inv
-
 import math
 import copy
 
@@ -35,20 +34,22 @@ def test(input_file, string):
                 array.append([float_catcher(number) for number in lines[i].split(',')])
             transitions[char] = np.array(array, dtype=np.float64)
             pos += nbS
-        
+
         at = PFA(nbL, nbS, initial, final, transitions)
+
         at.print()
 
-        
+
         print('generate a string:', at.generate())
         print('probability of {}:'.format(string), at.parse(string))
-        print('most probable string:', at.BMPS_exact(0.0000001))
+        print('most probable string:', at.MPS())
         print('prefix_prob of {}:'.format(string), at.prefix_prob(string))
         print('prefix_prob2 of {}:'.format(string), at.prefix_prob2(string))
         print('suffix_prob of {}:'.format(string), at.suffix_prob(string))
         print('probability condition:', at.probability_cond())
         print('terminating condition:', at.terminating_cond())
         print('bestpath and bestscore:', at.viterbi(string))
+        print('k-MPS:', at.k_MPS('aa', 1))
         print('#############################################')
         print()
 
