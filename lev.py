@@ -3,7 +3,7 @@ import DFA
 
 class LevenshteinAutomaton(DFA):
     def __init__(self, string, max_edits):
-        super().__init__(nbL = 0, nbS = 0, initial_state = 0, states = [],
+        super(DFA, self).__init__(nbL = 0, nbS = 0, initial_state = 0, states = [],
                                                    transitions = {}, accepting_states = [])
         self.string = string
         self.max_edits = max_edits

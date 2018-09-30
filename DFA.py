@@ -6,13 +6,13 @@ class DFA:
         self.states = states
         self.initial_state = initial_state
         self.final_states = final_states
-        self.alphabet = []
+        self.alphabets = []
         """
         transitions input : sparse matices -> {(current_state, alphabet), next_state}
         """
         self.transitions = {} # key : (current_state, alphabet), value : next_state
         for alphabet in transitions:
-            self.alphabet.append(alphabet)
+            self.alphabets.append(alphabet)
             for current_state in range(transitions[alphabet].shape[0]):
                 if(np.count_nonzero(transitions[alphabet][current_state]) > 1):
                     None
@@ -30,7 +30,7 @@ class DFA:
     def verify_acceptance(self, string):
         current_state = self.initial_state
         for alphabet in string:
-            if alphabet not in self.transitions:
+            if alphabet not in self.alphabets:
                 return False
             current_state = self.transitions[(current_state,alphabet)]
         if current_state in final_states:
