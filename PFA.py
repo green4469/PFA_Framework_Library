@@ -313,7 +313,7 @@ class PFA(RA):
         suffix_list.append(final)
         x_list.reverse()  # Start from the end
         for char in x_list:  
-            final = self.transitions[char] @ initial
+            final = self.transitions[char] @ final
             suffix_list.append(final)
         suffix_list.pop()
         suffix_list.reverse()
@@ -324,47 +324,18 @@ class PFA(RA):
         if k == 1:
             x_list = list(x)
 
-            """
-            # Find prefix probabilities
-            prefix_list = []
-            initial = self.initial
-            prefix_list.append(initial)
-
-            for char in x_list:
-                initial = initial @ self.transitions[char]
-                prefix_list.append(initial)
-
-            # Find suffix probabilities
-            suffix_list = []
-            final = self.final
-            suffix_list.append(final)
-            x_list.reverse()
-            for char in x_list:
-                final = self.transitions[char] @ initial
-                suffix_list.append(final)
-            suffix_list.pop()
-            suffix_list.reverse()
-            x_list.reverse()
-
-            """
-
             # Calculate all probabilities of possible strings where (k=1, x)
             most_prob = 0
             MPS = []
             for i in range(len(x_list)):
                 for char in self.alphabet:
                     prob = prefix_list[i] @ self.transitions[char] @ suffix_list[i]
-                    print(i, char, prob)
                     if prob > most_prob:
                         most_prob = prob
                         MPS = x_list[:]
                         MPS[i] = char
 
-            print("most prob:", most_prob)
-            print("ab prob:", self.initial @ self.transitions['a'] @ self.transitions['b'] @ self.final)
             return ''.join(MPS)
-
-
 
 
         # Find all possible combinations when k using cartesian product
@@ -395,13 +366,10 @@ class PFA(RA):
                 if prob > most_prob:
                     most_prob = prob
                     MPS = MPS_candidate[:]
-                    print(MPS)
-                    print(prob)
 
         # Find k-MPS
         MPS = ''.join(MPS)
 
-        print("Retrun:",MPS)
         return MPS
 
         
