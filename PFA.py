@@ -4,7 +4,7 @@ from numpy.linalg import inv
 import math
 import copy
 
-import editdistance
+#import editdistance
 
 from RA import RA
 
@@ -57,13 +57,7 @@ class PFA(RA):
                 temp_ndarray = V[i-1][:]*self.transitions[string[i-1]].transpose()[j,:]
                 V[i][j] = max(temp_ndarray)
                 Vpath[i][j] = Vpath[i-1][np.argmax(temp_ndarray)]+str(j)
-                """
-                #below is the original algorithm
-                for k in range(self.nbS):
-                   if V[i][j] < V[i-1][k]*self.transitions[string[i-1]][k,j]:
-                        V[i][j] = V[i-1][k]*self.transitions[string[i-1]][k,j]
-                        Vpath[i][j] = Vpath[i-1][k]+str(j)
-                """
+
         #Multiply by the halting probabilities
         bestscore = 0
         bestpath = ""
