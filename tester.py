@@ -49,7 +49,7 @@ def test(input_file, string):
         print('probability condition:', at.probability_cond())
         print('terminating condition:', at.terminating_cond())
         print('bestpath and bestscore:', at.viterbi(string))
-        print('k-MPS:', at.k_MPS('aa', 1))
+        print('k-MPS:', at.k_MPS('bb', 1))
         print('#############################################')
         print()
 

@@ -1,0 +1,45 @@
+\begin{thebibliography}{1}
+
+\bibitem{cognetta2018online}
+Marco Cognetta and Yo-Sub Han.
+\newblock Online stochastic pattern matching.
+\newblock In {\em International Conference on Implementation and Application of
+  Automata}, pages 121--132. Springer, 2018.
+
+\bibitem{de2010grammatical}
+Colin De~La~Higuera.
+\newblock {\em Grammatical inference: learning automata and grammars}.
+\newblock Cambridge University Press, 2010.
+
+\bibitem{de2013computing}
+Colin De~La~Higuera and Jos{\'e} Oncina.
+\newblock Computing the most probable string with a probabilistic finite state
+  machine.
+\newblock In {\em Proceedings of the 11th International Conference on Finite
+  State Methods and Natural Language Processing}, pages 1--8, 2013.
+
+\bibitem{de2013most}
+Colin De~La~Higuera and Jos{\'e} Oncina.
+\newblock The most probable string: an algorithmic study.
+\newblock volume~24, pages 311--330. Oxford University Press, 2013.
+
+\bibitem{ballespectral}
+Colin De~La~Higuera and Jos{\'e} Oncina.
+\newblock Spectral learning techniques for weighted automata, transducers, and
+  grammars.
+\newblock In {\em Proceedings of Conference on Empirical Methods in Natural
+  Language Processing (EMNLP)}, 2014.
+
+\bibitem{vidal2005probabilistic}
+Enrique Vidal, Franck Thollard, Colin De~La~Higuera, Francisco Casacuberta, and
+  Rafael~C Carrasco.
+\newblock Probabilistic finite-state machines-part i.
+\newblock volume~27, pages 1013--1025. IEEE, 2005.
+
+\bibitem{vidal2005probabilistic2}
+Enrique Vidal, Frank Thollard, Colin De~La~Higuera, Francisco Casacuberta, and
+  Rafael~C Carrasco.
+\newblock Probabilistic finite-state machines-part ii.
+\newblock volume~27, pages 1026--1039. IEEE, 2005.
+
+\end{thebibliography}

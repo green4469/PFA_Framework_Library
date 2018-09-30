@@ -7,7 +7,7 @@ import copy
 
 class RA(object):
 
-    def __init__(self, nbL=0, nbS=0, initial=[], final=[], transitions=[]):
+    def __init__(self, nbL, nbS, initial, final, transitions):
         """
         Constructor of R automaton
         """

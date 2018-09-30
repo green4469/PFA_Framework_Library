@@ -1,0 +1,264 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{filecontents}
+\usepackage{cite}
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\title{Computational Evaluation of Approximation Algorithms \\ \Large First Interim Report}
+\author{Myeong-Jang Pyeon\and Yu-Min Kim\and Hak-Su Lim}
+\begin{filecontents*}{\jobname.bib}
+@book{williamson2011design,
+  title={The design of approximation algorithms},
+  author={Williamson, David P and Shmoys, David B},
+  year={2011},
+  publisher={Cambridge university press}
+}
+@inproceedings{an2015dynamic,
+  title={Dynamic facility location via exponential clocks},
+  author={An, Hyung-Chan and Norouzi-Fard, Ashkan and Svensson, Ola},
+  booktitle={Proceedings of the twenty-sixth annual ACM-SIAM symposium on Discrete algorithms},
+  pages={708--721},
+  year={2015},
+  organization={Society for Industrial and Applied Mathematics}
+}
+@inproceedings{buchbinder2013simplex,
+  title={Simplex partitioning via exponential clocks and the multiway cut problem},
+  author={Buchbinder, Niv and Naor, Joseph Seffi and Schwartz, Roy},
+  booktitle={Proceedings of the forty-fifth annual ACM symposium on Theory of computing},
+  pages={535--544},
+  year={2013},
+  organization={ACM}
+}
+\end{filecontents*}
+\immediate\write18{bibtex \jobname}
+\bibliographystyle{plain}
+\begin{document}
+\maketitle
+\begin{center}
+{
+\large 
+\textbf{Team Name:} Evaluation \\
+\textbf{Advisor:} Prof. Hyung-Chan An \\
+\par
+}
+\end{center}
+
+\section{Introduction}
+% 유민 %
+Discrete optimization problems are mostly NP-hard. There may not exist or at least we can't find efficient algorithms to find optimal solutions for these problems. Recall that efficient algorithms are algorithms whose time and space complexity are bounded by polynomial in their input size. Since it's impossible to find the "efficient" algorithms to find the optimal solutions for any instance, we need to relax at least one of these requirements. Algorithms that make use of a relaxation methodology are called \textit{Approximation Algorithms}. 
+\newline
+\indent
+There are some representative techniques to relax the NP-hard optimization problems. Among these relaxation methodologies, the most popular one is to relax the requirement with which we have to find "optimal" solutions. In other words, a relaxation where it is sufficient to obtain suboptimal solutions is the most widely used. In this project, we take advantage of this approach to optimize two NP-complete optimization problems, which are (1) Facility Location Problem and (2) Multiway-Cut Problem.
+\newline
+\indent
+There are some popular techniques to design and analyze approximation algorithms. We use one of them, \textit{Linear Programming}. In linear programs, there exist decision variables that literally represent decisions to be made and linear constraints that decision variables should satisfy. If we solve these problems and obtain values of decision variables that satisfy constraints, we call the values an LP-solution, which is a solution to the relaxed problem.
+\newline
+\indent
+Even if we solved a relaxed optimization problem, it doesn't mean that we solved the original problem. So, we should round the relaxed solution to the original. In other words, we have to make decisions based on values of decision variables. Thus, we need to design a rounding algorithm to round a fractional solution to an integer solution. We refer the reader to a recent textbook on this topic by Williams and Shmoys\cite{williamson2011design} for more comprehensive understanding.
+\newline
+\indent
+In this project, we evaluate two approximation algorithms based on exponential clocks. Firstly, we implement LP-relaxation, preprocessing, and rounding algorithms using CPLEX, a commercially available LP-solver library. We will then computationally evaluate the algorithms and improve the algorithms and analysis.
+\newline
+\indent
+An et al. \cite{an2015dynamic} presented a new LP-rounding algorithm for the facility location problems using competing exponential clocks, which yields the first constant approximation algorithm for the dynamic facility location problem. Our project implements this rounding algorithm for uncapacitated facility location problem. Since the algorithm's analysis appears loose, but with the approach as an algorithm for the uncapacitated facility location problem it is conceivable that the approximation ratio is better than 14. It is known that the approximation ratio of the algorithm for the uncapacitated facility location problem is 6 \cite{an2015dynamic}. We want to experimentally obtain better bounds for the algorithm and improve it using some insights.
+\newline\indent
+ Buchbinder et al. \cite{buchbinder2013simplex} presented a novel simplex partitioning algorithm based on competing exponential clocks and distortion, which has a nice geometric interpretation. Applying this partitioning algorithm to the multiway cut problem, a simple $({4 \over 3})-$approximation algorithm is obtained. Because this algorithm's bound is quite tight and this algorithm also makes use of exponential clocks, we expect to obtain further insights.
+
+\section{Problems}
+% 학수 %
+%Problem
+\subsection{Facility Location Problem}
+The purpose of the facility location problem is to find the optimal location of facilities to minimize transportation costs between facilities and clients. An instruction of the facility location problem consists of facilities which can be opened or closed and clients which have to be connected to open facilities. The optimal solution minimizes the total distance between clients and their assigned facilities. This problem is NP-hard. The formal definition of the facility location problem is as follows:
+\newline
+\indent \textbf{Given:} a set of facilities $F$, clients $C$ , connection costs $d:F\times C\rightarrow \mathbb{Q^+}$, and opening costs $\{f_{i}:i\in F\} $ 
+\newline 
+\indent \textbf{Goal:} to obtain a set of opened facilities $A\subseteq F$ and connection $\phi : C \rightarrow A$ to minimize 
+\newline 
+$$\sum\limits_{i\in A} f_{i} + \sum\limits_{j\in C} d(\phi (j), j)$$
+\subsection{Multiway Cut Problem}
+A minimum cut of a graph is a cut that has minimal sum of cut edge. A generalization of the unweighted and undirected minimum cut prolem considers $k>2$ terminals. Given a weighted graph, the purpose of the multiway cut problem is to cut some of the edges whose removal separates each terminal from the others. The multiway cut problem is known to be NP-hard even for $k = 3$. The formal definition of the multiway cut problem is as follows:
+\newline
+\indent \textbf{Given:} a graph $G=(V,E)$, a set of terminals $T\subseteq V$, and weights $\textit{w}:E\rightarrow \mathbb{Q}^{+}$
+\newline 
+\indent \textbf{Goal:} to obtain $l:V\rightarrow T$ with the property that $l(t)=t$ $\forall t\in T$ so that remove $e=(u,v)\in E$ if and only if $l(u)\neq l(v)$
+\newline
+\section{Algorithms}
+% 명장 %
+% 본 프로젝트에서는 LP rounding 과정에서 exponential clocks를 사용하는 알고리즘을 중점적으로 다루고자 한다. 이러한 알고리즘들 중 다음 두 가지 알고리즘을 이용하여 computational evaluation을 수행하고, 이 과정에서 도출된 insight들을 바탕으로 기존의 exponential clocks기반 LP rounding 알고리즘을 개선하여 새로운 rounding 기법을 제안하고자 한다.%
+%In this project, we cover approximation algorithms based on exponential clocks. Among these, we will suggest improved approximation algorithms based on exponential clocks, using insights from computational evaluation of existing algorithms.%
+\subsection{Facility Location Problem via Exponential Clocks}
+% 첫 번째로 computational evaluation을 수행할 알고리즘은 FLP를 An et. al. [1]이 제시한 exponential clock을 사용하는 근사 알고리즘이다. 해당 연구에서 대상으로 한 문제는 FLP를 일반화한 DFLP이지만, 우리는 다음과 같이 FLP를 풀기 위한 알고리즘으로 재정의하여 이용하였다.%
+% Linear Programming 기법을 이용하여 facility location problem을 해결하기 위해 LP-relax하면 아래와 같다.
+%
+Firstly, we computationally evaluate the approximation algorithm given by An et al.\cite{an2015dynamic}. It is for the dynamic facility location problem, a generalized version of the original, based on exponential clocks. We modify the original algorithm to solve the original facility location problem.
+\newline \indent
+In order to use an LP-based approach to the facility location problem described in Section 2.1, we relax the original problem by setting connection variables $x_{ij}$ for each facility $i \in F$ and client $j\in C$ and opening variables $y_{i}$ for each facility $i \in F$. So, the relaxed problem is as follows: 
+\begin{quotation}
+\noindent
+minimize $\sum\limits_{i\in F} y_{i}f_{i} + \sum\limits_{i\in F, j\in C} x_{ij}d(i, j)$
+\newline
+subject to $\sum\limits_{i\in F} x_{ij} = 1$, $\forall j\in C$
+\newline
+\indent \indent \indent $x_{ij} \le y_{i}$, $\forall i\in F, j\in C$
+\newline
+\indent \indent \indent $x_{ij}, y_{i} \ge 0$, $\forall i\in F, j\in C$
+\end{quotation}
+\indent \indent
+Given a solution $(\textbf{x}, \textbf{y})$ to the relaxed problem, we obtain the solution to the original problem by Algorithm 1.
+\begin{algorithm}
+\caption{Rounding Facility Location Problem via Exponential Clocks}
+\hspace*{\algorithmicindent} \textbf{Input:} a set of facilities $F$, clients $C$, open costs $f$, connection costs $d:F\times C\rightarrow \mathbb{R}$, and LP-solutions $x, y$\\ 
+\hspace*{\algorithmicindent} \textbf{Output:} a set of opened facilities $A$ and connections $\phi:C\rightarrow A$
+\begin{algorithmic}[1]
+\State $n\gets |F|$
+\State $m\gets |C|$
+\State let $F'$ be $\{F_{uv}:1\le u\le n, 1\le v\le m\}$ such that $F_{uv}=F_{u}$
+\State let $f'$ be $\{f_{uv}:1\le u\le n, 1\le v\le m\}$ such that $f_{uv}=f_{u}$
+\State let $d':F'\times C\rightarrow \mathbb{R}$ be $d'(F_{uv},j)=d(F_{u},j),$  $\forall 1\le u\le n, 1\le v\le m, j\in C$
+
+\For{$i\gets F_{1},...,F_{n}$}
+\State sort $x_{i}$ in non-decreasing order
+\State let $\sigma_{i}:\{1,...,m\}\rightarrow C$ be a function such that $\{x_{i\sigma_{i}(k)}\}=x_{i}$
+\State $y'_{i_{1}}\gets x_{i\sigma_{i}(1)}$
+\For{$k\gets 2,...,m$}
+\State $y'_{i_{k}}\gets x_{i\sigma_{i}(k)} - x_{i\sigma_{i}(k-1)}$
+\EndFor
+\For{$k\gets 1,...,m$}
+\State $x'_{i_{k'}\sigma_{i}(k')}\gets  y'_{i_{k'}},$  $\forall k\le k'\le m$
+\State $x'_{i_{k'}\sigma_{i}(k')}\gets 0,$  $\forall 1\le k'< k$
+\EndFor
+\EndFor
+\State M$[i_{k}]\gets 0,$ \hspace{0.01cm} $\forall i_{k}\in F'$
+\For{$i_{k}\gets F'_{11},F'_{12},...,F'_{nm}$}
+\State sample $Q_{i_{k}}\sim$\textsc{Exp}$(y_{i_{k}})$
+\EndFor
+\State let $\sigma:C\rightarrow \{1,...,m\}$ be a random one-to-one correspondence
+\State sort $C$ in the increasing order of $\sigma$
+\For{$j\gets C_{1},...,C_{m}$}
+\State $i_{k}\gets \argmin\limits_{i_{k}:x'_{i_{k}j}>0}$ $Q_{i_{k}}$
+\State $j'\gets \argmin\limits_{j':x_{i_{k}j'}>0}$ $\sigma (j')$
+\If{$j=j'$}
+\State M$[i_{k}]\gets 1$\Comment{open $i_{k}$}
+\State N$[j]\gets i_{k}$\Comment{connect $j$ to $i_{k}$}
+\Else
+\State N$[j]\gets $N$[j']$\Comment{connect $j$ to the same facility as $j'$}
+\EndIf
+\EndFor
+\State $A\gets \emptyset$
+\For{$i\gets F_{1},...,F_{n}$}
+\If{$\sum\limits_{k=1}^{m}$M$[i_{k}]>0$}
+\State $A\gets A\cup \{i\}$\Comment{open $i$}
+\EndIf
+\EndFor
+\For{$j\gets C_{1},...,C_{m}$}
+\State $i_{k}\gets N[j]$
+\State $\phi (j)\gets i$\Comment{connect $j$ to $i$}
+\EndFor
+\State \textbf{return} $A, \phi$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Multiway Cut Problem via Exponential Clocks}
+% 두 번째로 computational evaluation을 수행할 알고리즘은 MCP를 Niv Buchbinder, Joseph Seffi Naor, and Roy Schwartz [2]이 제시한 exponential clock을 사용하는 근사 알고리즘이다. 해당 논문에서 제시한 두 알고리즘 중 4/3 approx. alg.를 evaluation 과정에 이용하였다.%
+% Linear Programming 기법을 이용하여 MCP을 해결하기 위해 LP-relax하면 아래와 같다.
+%
+Secondly, our computational evaluation also covers the approximation algorithm given by Buchbinder et al.\cite{buchbinder2013simplex}. They suggested two approximation algorithms for the multiway cut problem described in Section 2.2.
+\newline \indent
+The algorithm embeds all vertices on a $k-$simplex $\Delta_{|T|}$, where the terminals are embedded on the vertices of the simplex. Recall that the $k-$simplex is defined as $\Delta_{k}:=\{(x_{1},...,x_{k}):x_{1}+\dots +x_{k}=1, x_{i}\ge 0,$ $\forall 1\le i\le k\}$. In addition, we set norm variables $z_{uvi}$ for each $e=(u,v)\in E$, which are intended to represent the $l_{1}-$norm between vertices $u$ and $v$ by simply adding $z_{uvi}$ for all coordinates $i\le |T|$ and dividing it by 2. It is equivalent to the $l_{q}-$norm by adding conditions such that $z_{uvi}\ge u_{i} - v_{i}$ and $z_{uvi}\ge v_{i} - u_{i}$, $\forall e=(u,v)\in E, 1\le i\le |T|$ because the objective of the linear program is to minimize the value of the objective function. The relaxed problem satisfying the assumption is as follows: 
+\begin{quotation}
+\noindent
+minimize $\sum\limits_{e=(u,v)\in E} {\textit{w}(e)\over 2} \sum\limits_{i=1}^{|T|}z_{uvi}$
+\newline
+subject to $\sum\limits_{i=1}^{|T|} u_{i} = 1$, $\forall u\in V$
+\newline
+\indent \indent \indent $T_{i}=\textit{e}_{i}$, $\forall 1\le i\le |T|$
+\newline
+\indent \indent \indent $z_{uvi}\ge u_{i} - v_{i}$, $\forall e=(u,v)\in E, 1\le i\le |T|$
+\newline
+\indent \indent \indent $z_{uvi}\ge v_{i} - u_{i}$, $\forall e=(u,v)\in E, 1\le i\le |T|$
+\end{quotation}
+\indent \indent
+Given a solution $\{u\}_{u\in V}\subseteq \Delta_{|T|}$ to the relaxed problem, we obtain a solution to the original problem with Algorithm 2.
+\begin{algorithm}
+\caption{Rounding Multiway-Cut Problem via Exponential Clocks}
+\hspace*{\algorithmicindent} \textbf{Input:} a graph $G=(V,E)$, a set of terminals $T\subseteq V$, weights $\textit{w}: E\rightarrow \mathbb{R}^{+}$, and a set of LP solutions $\{u:u\in V\}\subseteq \Delta_{|T|}$\\ 
+\hspace*{\algorithmicindent} \textbf{Output:} $l:V\rightarrow T$ with the property that $l(t)=t$ $\forall t\in T$
+\begin{algorithmic}[1]
+\Function{CompetingExponentialClocks}{$V, T$}\Comment{$V\subseteq \Delta_{|T|}$}
+\For{$i\gets 1,...,|T|$}
+\State sample $Z_{i}\sim Exp(1)$
+\EndFor
+\For{$u\in V$}
+\State $i^{*}\gets \argmin\limits_{i:1\le i\le |T|}$ $Z_{i}\over u_{i}$
+\State $l(u)\gets T_{i^{*}}$
+\EndFor
+\State \textbf{return} $l$
+\EndFunction
+\Function{DistortingSimplex}{$V, T$}\Comment{$V\subseteq \Delta_{|T|}$}
+\State sample $r\sim Uniform[0,1]$
+\State $l(u)\gets \lambda$\Comment{the symbol for undefined mappings}
+\For{$i\gets 1,...,|T|-1$}
+\For{$u\in V$}
+\If{$l(u)=\lambda$ \textbf{and} $r\le u_{i}^{2}$}
+\State $l(u)\gets T_{i}$
+\EndIf
+\EndFor
+\EndFor
+\For{$u\in V$}
+\If{$l(u)=\lambda$}
+\State $l(u)\gets T_{|T|}$
+\EndIf
+\EndFor
+\State \textbf{return} $l$
+\EndFunction
+\State let $\Phi$ be the ordered set $\{1,1,2\}$
+\State $i\gets $ randomly choose an element in $\Phi$
+\If {$i=1$}
+\State $l\gets \textsc{CompetingExponentialClocks}(V,T)$
+\Else
+\State $l\gets \textsc{DistortingSimplex}(V,T)$
+\EndIf
+\State \textbf{return} $l$
+\end{algorithmic}
+\end{algorithm}
+
+
+
+\section{Research Progress}
+% 유민 %
+We implemented these two approximation algorithms based on exponential clocks described in Section 3. Our next step is to computationally evaluate these algorithms using various datasets and calculate practical performance. We expect that our evaluation will yield insights which are valuable in improving these algorithms. 
+\newline
+\indent
+Our implementation will be used to measure practical performance rather than theoretical bounds for approximation algorithms. In theory, the bounds assume worst case input data but those kind of data may not occur frequently.
+\newline
+\indent
+In addition, our implementation of algorithms described in section 3 will be also used to improve the bounds of described algorithms. By computationally evaluating two approximation algorithms based on exponential clocks, we expect to improve the algorithms using insights from computational evaluation on various inputs. We will also attempt to bring approaches from Buchbinder et al.\cite{buchbinder2013simplex} which yield tight bounds to the facility location problem.
+
+\section{Future Plan}
+% 학수 %
+Our schedule is described in Figure 1. We implemented two algorithms described in Section 3. Currently, we are on schedule. We will computationally evaluate these algorithms to get insights to improve these algorithms. 
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.35,bb=0 0 922 311]{Schedule}
+\caption{Schedule for our project} \label{fig:label}
+\end{center}
+\end{figure}
+
+\indent We divide our roles as follows:
+\begin{itemize}
+\item \textbf{Myeong-Jang Pyeon.} writing pseudo codes, implementing LP-solving part of the algorithm, and preparing documents
+\item \textbf{Yu-Min Kim.} designing class structures, defining data structures, and implementing LP-rounding part of the algorithm
+\item \textbf{Hak-Su Lim.} generating inputs, sampling from exponential distributions, and testing and debugging implemented programs
+\end{itemize}
+
+
+\bibliography{\jobname}
+\end{document}
