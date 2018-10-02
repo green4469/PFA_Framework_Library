@@ -5,6 +5,8 @@ import copy
 
 from PFA import PFA
 
+
+# Receive relative numbers e.g., 3/5
 def float_catcher(number):
     try:
         return float(number)
@@ -51,17 +53,18 @@ def parser(fname):
 
 # Given a PFA, test that PFA's operations.
 def test(at, string, k):
-    print('generate a string:', at.generate())
-    print('probability of {}:'.format(string), at.parse(string))
-    print('most probable string:', at.MPS())
-    print('prefix_prob of {}:'.format(string), at.prefix_prob(string))
-    print('prefix_prob2 of {}:'.format(string), at.prefix_prob2(string))
-    print('suffix_prob of {}:'.format(string), at.suffix_prob(string))
-    print('probability condition:', at.probability_cond())
-    print('terminating condition:', at.terminating_cond())
-    print('bestpath and bestscore:', at.viterbi(string))
-    print('k-MPS:', at.k_MPS(string, k))
-    print('#############################################')
+    print('{0:^50}'.format("given string: " + string))
+    print('{0:^50}'.format("distance k: " + str(k)))
+    print('generate a string                : {}'.format(at.generate()))
+    print('probability                      : {}'.format(at.parse(string)))
+    print('most probable string             : {}'.format(at.MPS()))
+    print('prefix_prob                      : {}'.format(at.prefix_prob(string)))
+    print('suffix_prob                      : {}'.format(at.suffix_prob(string)))
+    print('probability condition            : {}'.format(at.probability_cond()[0]))
+    print('terminating condition            : {}'.format(at.terminating_cond()[0]))
+    print('bestpath and highest probability : {}'.format(at.viterbi(string)))
+    print('k-MPS                            : {}'.format(at.k_MPS(string, k)))
+    print('{0:#^50}'.format(''))
     print()
 
 
@@ -70,5 +73,4 @@ import sys
 
 automaton = parser(sys.argv[1])  # sys.argv[1] for input file name
 test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
-
 

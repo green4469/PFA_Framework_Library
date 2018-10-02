@@ -369,7 +369,6 @@ class PFA(RA):
 
         # Find k-MPS
         MPS = ''.join(MPS)
-        print("k-MPS's prob:", most_prob)
 
         return MPS
 
