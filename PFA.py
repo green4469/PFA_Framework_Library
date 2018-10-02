@@ -254,7 +254,7 @@ class PFA(RA):
             if high - low < epsilon and w != False:
                 return w
 
-    def k_MPS(self, x, k=1):
+    def k_MPS(self, x, k):
         """
         Return MPS where the string is within 1 hamming distance with given string x (k = 1)
         Input: an Automaton, a string x, an positive integer k
@@ -302,7 +302,7 @@ class PFA(RA):
             for j in range(i+1, n):
                 infix_prob = self.I  # Start with identity matrix
                 for idx in range(i+1, j):
-                    infix_prob = infix_prob @ self.transitions[char]
+                    infix_prob = infix_prob @ self.transitions[x_list[idx]]
                 infix_dict[(i,j)] = infix_prob  # Later, reference like infix_list[(i, j)]
                 
 
@@ -341,7 +341,7 @@ class PFA(RA):
         # Find all possible combinations when k using cartesian product
         # nCk, Sigma^k?
         import itertools
-        alpha_comb = itertools.product(self.alphabet, repeat=k)  # Cartesian product for repeat k, e.g., A = ['a', 'b']; when k = 3; A x A x A
+        alpha_comb = list(itertools.product(self.alphabet, repeat=k))  # Cartesian product for repeat k, e.g., A = ['a', 'b']; when k = 3; A x A x A
         pos_comb = itertools.combinations(range(n), k)  # Combinations for posstible k positions
 
         # Calculate probabilities
@@ -369,6 +369,7 @@ class PFA(RA):
 
         # Find k-MPS
         MPS = ''.join(MPS)
+        print("k-MPS's prob:", most_prob)
 
         return MPS
 
