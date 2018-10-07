@@ -1,0 +1,15 @@
+2 4 8
+0.4 0
+0.6 0.6
+0 0.5
+0 0.3
+0 a 1 0.5
+1 a 3 0.2
+2 a 2 0.3
+0 b 0 0.5
+1 b 2 0.2
+2 b 3 0.2
+3 b 0 0.5
+3 b 1 0.2
+
+#example of Fig.5.4 in Chapter 5.2 Probabilistic automata P.108

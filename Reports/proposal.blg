@@ -1,0 +1,53 @@
+This is BibTeX, Version 0.99d (TeX Live 2017/Debian)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: proposal.aux
+The style file: plain.bst
+Database file #1: proposal.bib
+Warning--empty booktitle in de2013most
+Warning--can't use both volume and number fields in de2013most
+Warning--empty booktitle in vidal2005probabilistic
+Warning--can't use both volume and number fields in vidal2005probabilistic
+Warning--empty booktitle in vidal2005probabilistic2
+Warning--can't use both volume and number fields in vidal2005probabilistic2
+You've used 7 entries,
+            2118 wiz_defined-function locations,
+            539 strings with 5337 characters,
+and the built_in function-call counts, 3030 in all, are:
+= -- 309
+> -- 115
+< -- 8
++ -- 46
+- -- 38
+* -- 188
+:= -- 445
+add.period$ -- 25
+call.type$ -- 7
+change.case$ -- 39
+chr.to.int$ -- 0
+cite$ -- 13
+duplicate$ -- 138
+empty$ -- 250
+format.name$ -- 38
+if$ -- 683
+int.to.chr$ -- 0
+int.to.str$ -- 7
+missing$ -- 8
+newline$ -- 38
+num.names$ -- 14
+pop$ -- 57
+preamble$ -- 1
+purify$ -- 33
+quote$ -- 0
+skip$ -- 115
+stack$ -- 0
+substring$ -- 196
+swap$ -- 61
+text.length$ -- 8
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 26
+warning$ -- 6
+while$ -- 29
+width$ -- 8
+write$ -- 81
+(There were 6 warnings)

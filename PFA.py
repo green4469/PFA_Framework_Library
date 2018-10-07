@@ -12,7 +12,7 @@ from DS import Queue
 
 
 class PFA(RA):
-    def __init__(self, nbL=0, nbS=0, initial=[], final=[], transitions=[]):
+    def __init__(self, nbL, nbS, initial, final, transitions):
         super(PFA, self).__init__(nbL, nbS, initial, final, transitions)
 
         # Precalculate for the reason of complexity.
@@ -248,7 +248,7 @@ class PFA(RA):
             if high - low < epsilon and w != False:
                 return w
 
-    def k_MPS(self, x, k=1):
+    def k_MPS(self, x, k):
         """
         Return MPS where the string is within 1 hamming distance with given string x (k = 1)
         Input: an Automaton, a string x, an positive integer k
@@ -276,36 +276,94 @@ class PFA(RA):
         print(strings)
         """
 
-        x_list = list(x)
+        x_list = list(x)  # make input string x to a list
 
-        # Find prefix probabilities
+        # Prefix probabilities
+        # O(Sigma)
         prefix_list = []
         initial = self.initial
         prefix_list.append(initial)
 
-        for char in x_list:
+        for char in x_list: 
             initial = initial @ self.transitions[char]
             prefix_list.append(initial)
 
+        # Infix probabilities
+        # O(n^3)
+        infix_dict = {}
+        n = len(x)
+        for i in range(n): 
+            for j in range(i+1, n):
+                infix_prob = self.I  # Start with identity matrix
+                for idx in range(i+1, j):
+                    infix_prob = infix_prob @ self.transitions[x_list[idx]]
+                infix_dict[(i,j)] = infix_prob  # Later, reference like infix_list[(i, j)]
+                
 
-        # Find prefix probabilities
+        # Suffix probabilities  
+        # O(Sigma)
         suffix_list = []
         final = self.final
         suffix_list.append(final)
-        x_list.reverse()
-        for char in x_list:
-            final = self.transitions[char] @ initial
+        x_list.reverse()  # Start from the end
+        for char in x_list:  
+            final = self.transitions[char] @ final
             suffix_list.append(final)
-        x_list.reverse()
+        suffix_list.pop()
+        suffix_list.reverse()
+        x_list.reverse()  # Make the list original order
 
-        # Calculate all probabilities of possible strings where (k=1, x)
-        prob = 0
+
+        # When k = 1
+        if k == 1:
+            x_list = list(x)
+
+            # Calculate all probabilities of possible strings where (k=1, x)
+            most_prob = 0
+            MPS = []
+            for i in range(len(x_list)):
+                for char in self.alphabet:
+                    prob = prefix_list[i] @ self.transitions[char] @ suffix_list[i]
+                    if prob > most_prob:
+                        most_prob = prob
+                        MPS = x_list[:]
+                        MPS[i] = char
+
+            return ''.join(MPS)
+
+
+        # Find all possible combinations when k using cartesian product
+        # nCk, Sigma^k?
+        import itertools
+        alpha_comb = list(itertools.product(self.alphabet, repeat=k))  # Cartesian product for repeat k, e.g., A = ['a', 'b']; when k = 3; A x A x A
+        pos_comb = itertools.combinations(range(n), k)  # Combinations for posstible k positions
+
+        # Calculate probabilities
+        # O(nCk * Sigma^k * k)
+        most_prob = 0
         MPS = []
-        for i in range(len(x_list)):
-            for char in self.alphabet:
-                if prefix_list[i] @ self.transitions[char] @ suffix_list[len(x_list)-1-i] > prob:
-                    prob = prefix_list[i] @ self.transitions[char] @ suffix_list[len(x_list)-1-i]
-                    MPS = x_list
-                    MPS[i] = char
+        for pos_tuple in pos_comb:
+            for alpha_tuple in alpha_comb:
+                MPS_candidate = x_list[:]
 
-        return ''.join(MPS)
+                ###
+                prob = prefix_list[pos_tuple[0]]
+                for i in range(k-1):
+                    prob = prob @ self.transitions[alpha_tuple[i]]
+                    MPS_candidate[pos_tuple[i]] = alpha_tuple[i]
+                    prob = prob @ infix_dict[(pos_tuple[i], pos_tuple[i+1])]
+                prob = prob @ self.transitions[alpha_tuple[k-1]]
+                MPS_candidate[pos_tuple[k-1]] = alpha_tuple[k-1]
+                prob = prob @ suffix_list[pos_tuple[k-1]]
+                ###
+
+                if prob > most_prob:
+                    most_prob = prob
+                    MPS = MPS_candidate[:]
+
+        # Find k-MPS
+        MPS = ''.join(MPS)
+
+        return MPS
+
+        
