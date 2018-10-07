@@ -69,8 +69,9 @@ def test(at, string, k):
 
 
 # Main
-import sys
+if __name__ == "__main__":
+    import sys
 
-automaton = parser(sys.argv[1])  # sys.argv[1] for input file name
-test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
+    automaton = parser(sys.argv[1])  # sys.argv[1] for input file name
+    test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
 
