@@ -1,0 +1,27 @@
+(20181007)
+1. PFA Random Generation Function
+
+INPUT : None
+OUTPUT : PFA
+
+at = PFA(nbL, nbS, initial, final, transitions)
+==> The alphabets are small case english alphabets. therefore nbL is 26
+==> nbS is a random number in 10 ~ 2000
+
+- Initial probabilities
+sum_to_one(nbS)
+
+- Final probabilities & Transition probabilities
+sum_to_one(1 + ?)
+? is a random number in (0 ~ nbS*nbL)
+
+cartesian product (alphabets, states) ==> nbL * nbS
+select a random number n from above list
+sum_to_one
+
+
+
+=> The sum of initial probabilities equals to 1
+=> For each state, the sum of outgoing probabilities + final probability = 1
+
+
