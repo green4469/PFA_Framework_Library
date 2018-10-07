@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import inv
-
+import itertools
 import math
 import copy
 
@@ -214,7 +214,7 @@ class PFA(RA):
             w, V = Q.dequeue().data
             #print('current string', w)
 
-            for char in self.alphabet:
+            for char in self.alphabets:
                 #print('alphabet', char)
                 V_new = V @ self.transitions[char]
 
@@ -322,7 +322,7 @@ class PFA(RA):
             most_prob = 0
             MPS = []
             for i in range(len(x_list)):
-                for char in self.alphabet:
+                for char in self.alphabets:
                     prob = prefix_list[i] @ self.transitions[char] @ suffix_list[i]
                     if prob > most_prob:
                         most_prob = prob
@@ -335,7 +335,7 @@ class PFA(RA):
         # Find all possible combinations when k using cartesian product
         # nCk, Sigma^k?
         import itertools
-        alpha_comb = list(itertools.product(self.alphabet, repeat=k))  # Cartesian product for repeat k, e.g., A = ['a', 'b']; when k = 3; A x A x A
+        alpha_comb = list(itertools.product(self.alphabets, repeat=k))  # Cartesian product for repeat k, e.g., A = ['a', 'b']; when k = 3; A x A x A
         pos_comb = itertools.combinations(range(n), k)  # Combinations for posstible k positions
 
         # Calculate probabilities
@@ -366,4 +366,32 @@ class PFA(RA):
 
         return MPS
 
-        
+    """
+    Input : self - PFA, D - DFA(LevenshteinAutomaton)
+    Output : sub_PFA
+    """
+    def intersect_with_DFA(self, D):
+    # Myeong-Jang
+        P = self
+        Q = list(itertools.product(range(P.nbS), range(D.nbS)))
+        nbS = len(Q)
+        nbL = P.nbL
+        alphabets = P.alphabets
+        initial = [(P.initial[q[0]] * int(q[1]==D.initial_state)) for q in Q]
+        initial = np.array(initial)
+        final = [(P.final[q[0]] * int(q[1] in D.final_states)) for q in Q]
+        final = np.array(final)
+        transitions = {c:np.zeros((nbS, nbS)) for c in alphabets}
+        state_mapping = {q:q[0]*D.nbS+q[1] for q in Q}
+
+        for q, q_ in list(itertools.product(Q, Q)):
+            for c in P.alphabets:
+
+                if c in D.alphabets and (q[1], c) in D.transitions.keys() and D.transitions[(q[1], c)] == q_[1]:
+                    transitions[c][state_mapping[q],state_mapping[q_]] = P.transitions[c][q[0], q_[0]]
+                else:
+                    transitions[c][state_mapping[q],state_mapping[q_]] = 0
+        return RA(nbL, nbS, initial, final, transitions) # sub-PFA    
+
+if __name__ == "__main__":
+    pass
