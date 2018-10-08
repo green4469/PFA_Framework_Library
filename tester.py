@@ -31,6 +31,19 @@ def generate(n):
         else:
             print("Failed to verify")
 
+def DPFAgenerate(n):
+    idx = 1
+    for _ in range(n):
+        fname = 'inputs/input{}.txt'.format(idx)
+        PFA_utils.DPFAgenerator(fname)
+        print("Created an input file")
+        if PFA_utils.verifier(fname):
+            print("Verified #{} input.".format(idx))
+            idx += 1
+        else:
+            print("Failed to verify")
+    
+
 # Main
 
 if __name__ == "__main__":
@@ -41,4 +54,5 @@ if __name__ == "__main__":
     test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
     """
 
-    generate(int(sys.argv[1]))
+    #generate(int(sys.argv[1]))
+    DPFAgenerate(int(sys.argv[1]))
