@@ -1,14 +1,17 @@
+from common_header import *
+
 class Node(object):
     def __init__(self, data=None):
-        self.parent = None
         self.data = data
         self.next = None
 
 class Queue(object):
+    """
     class Node(object):
         def __init__(self, data=None):
             self.data = data
             self.next = None
+    """
 
     def __init__(self):
         self.head = None
@@ -18,9 +21,7 @@ class Queue(object):
     def is_empty(self):
         return self.length == 0
 
-    def enqueue(self, data):
-        new_node = Node(data)
-
+    def enqueue(self, new_node):
         if self.is_empty():
             self.head = self.tail = new_node
         else:

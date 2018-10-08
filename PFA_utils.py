@@ -1,10 +1,4 @@
-import numpy as np
-from numpy.linalg import inv
-import math
-import copy
-import random
-import itertools
-import os
+from common_header import *
 
 from PFA import PFA
 
@@ -93,49 +87,12 @@ def generator(fname):
 
         for tp in transitions:
             f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
-    f.close()
-
-def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
-    alphabets = 'ab'
-    alphabets = [str(alpha) for alpha in alphabets]
-    nbL = len(alphabets)
-    nbS = random.randint(num_state_min, num_state_max)
-    nbT = 0 # the number of transitions
-
-    initial = [0 for i in range(nbS)]
-    idx = random.randint(0,nbS-1)
-    initial[idx] = 1
-
-    final = []
-    transitions = []
-
-    #alpha_state_comb = list(itertools.product(alphabets, range(nbS)))
-    for i in range(nbS):
-        T = random.randint(0, len(alphabets))  # the number of outgoing transitions for this state
-        nbT += T
-        alphabet_list = alphabets[:] # the remain alphabets
-        for i in range(len(alphabets) - T):
-            alphabet_list.remove(random.choice(alphabet_list))
-        probs = sum_to_one( T + 1 )  # the sum of outgoing transitions probabilities + final probability = 1
-        final.append(probs[0])
-        for j, alphabet in enumerate(alphabet_list):
-            transitions.append((i, alphabet, random.randint(0,nbS-1), probs[j+1]))
-
-    with open(fname, 'w') as f:
-        f.write("{} {} {}\n".format(nbS, nbL, nbT))
-
-        for i in range(nbS):
-            f.write("{} {}\n".format(initial[i], final[i]))
-
-        for tp in transitions:
-            f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
-    f.close()
 
 
 # Verify the generated PFA input files
 def verifier(fname):
     at = parser(fname)
-    if at.probability_cond()[0] and at.terminating_cond()[0] and False not in at.get_reachable_state_flag():
+    if at.probability_cond()[0] and at.terminating_cond()[0] and np.sum(at.get_reachable_state_flag()) == 0.:
         return True
     else:
         os.remove(fname)
@@ -158,4 +115,47 @@ def pfa2input(pfa, file_name):
                 if pfa.transitions[key][i,j] > 0:
                     f.write("{} {} {} {}\n".format(i, key, j, pfa.transitions[key][i,j]))
     f.close()
+
+# Normalize sub-DPFA to DPFA
+def from_initial_to_state_string(at, target_state):
+    # BFS
+    from DS import Node, Queue
+
+    root = Node()
+    root.data = (np.argmax(at.initial), '')  # (state, generated_string) pair. For root node, the initial state (unique in (sub-)DPFA), and null string
+
+    q = Queue()
+    q.enqueue(root)
+    
+    while not q.is_empty():
+        current_node = q.dequeue()
+        current_state = current_node.data[0]
+        current_string = current_node.data[1]
+
+        if current_state == target_state:
+            return current_string
+        
+        # Find the successive nodes of the current node from the given automaton
+        for a, tm in at.transitions.iteritems():
+            # Each alphabet has one next state. (Since its sub-DPFA)
+            # Find that state 
+            next_state = np.argmax(tm[current_state])
+
+            new_node = Node()
+            new_node.data = (next_state, current_string + a)
+
+            q.enqueue(new_node)
+
+    raise Exception('There exist unreachable state')
+
+def normalizer(at):
+    at.final = np.zeros((1,nbs), dtype=np.float64)
+    for current_state in range(nbS):
+        w = from_initial_to_state_string(at, current_state)
+        at.final[current_state] = at.parse(w) / at.prefix_prob(w)
+
+        for a, tm in at.transitions.iteritems():
+            next_state = np.argmax(tm[current_state])
+            tm[a][current_state, next_state] = at.prefix_prob(w+a) / at.prefix_prob(w)
+    return at
 

@@ -1,9 +1,4 @@
-import numpy as np
-from numpy.linalg import inv
-
-import math
-import copy
-
+from common_header import *
 
 class RA(object):
 

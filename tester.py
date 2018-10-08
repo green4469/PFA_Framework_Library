@@ -1,3 +1,4 @@
+from common_header import *
 import PFA_utils
 
 # Given a PFA, test that PFA's operations.
@@ -44,11 +45,11 @@ def DPFAgenerate(n):
     
 
 # Main
+
 if __name__ == "__main__":
-    import sys
+
     """
     automaton = PFA_utils.parser(sys.argv[1])  # sys.argv[1] for input file name
 
     test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
     """
-    DPFAgenerate(int(sys.argv[1]))
