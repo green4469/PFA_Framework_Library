@@ -1,6 +1,6 @@
 """
 instructions
-generate_input.py dpfa num_of_files
+generate_input.py dpfa num_of_files nb_states_min nb_states_max
 generate_input.py string_for_pfa
 generate_input.py string num_of_strings
 
@@ -23,11 +23,11 @@ import os
 import sys
 import random
 
-def DPFAgenerate(n):
+def DPFAgenerate(n, nb_state_min, nb_state_max):
     idx = 0
     while(True):
         fname = 'inputs/pfa/input{}.txt'.format(idx)
-        PFA_utils.DPFAgenerator(fname)
+        PFA_utils.DPFAgenerator(fname, nb_state_min, nb_state_max)
         print("Created an input file")
         if PFA_utils.verifier(fname):
             print("Verified #{} input.".format(idx))
@@ -37,8 +37,6 @@ def DPFAgenerate(n):
         else:
             print("Failed to verify")
 
-def dpfa():
-    DPFAgenerate(int(sys.argv[2]))
 
 def string_for_PFA():
     folder = "./inputs/pfa"
@@ -64,11 +62,11 @@ def string(num_of_alphabet):
 if __name__ == "__main__":
     # generate_input.py dpfa num_of_files
     if sys.argv[1] == "dpfa":
-        dpfa()
+        DPFAgenerate(int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
     # generate_input.py string_for_pfa
     elif sys.argv[1] == "string_for_pfa":
         string_for_PFA()
 
     elif sys.argv[1] == "string":
         string(int(sys.argv[2]))
-    
+
