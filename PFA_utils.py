@@ -97,7 +97,7 @@ def generator(fname):
 # Verify the generated PFA input files
 def verifier(fname):
     at = parser(fname)
-    if at.probability_cond()[0] and at.terminating_cond()[0] and np.sum(at.get_reachable_state_flag()) == 0.:
+    if at.probability_cond()[0] and at.terminating_cond()[0] and int(np.sum(at.get_reachable_state_flag())) == 0:
         return True
     else:
         os.remove(fname)
