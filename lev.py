@@ -1,4 +1,4 @@
-import numpy as np
+from common_header import *
 from DFA import DFA 
 import PFA
 import tester

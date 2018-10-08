@@ -1,14 +1,8 @@
-import numpy as np
-from numpy.linalg import inv
-import itertools
-import math
-import copy
-
-#import editdistance
+from common_header import *
 
 from RA import RA
 
-from DS import Queue
+from DS import Node, Queue
 
 
 class PFA(RA):
@@ -207,7 +201,7 @@ class PFA(RA):
             return w
 
         # Enqueue the probability of the lambda string
-        Q.enqueue((w, self.initial))
+        Q.enqueue(Node((w, self.initial)))
 
         while not Q.is_empty():
             # w is string and V is a matrix
@@ -223,7 +217,7 @@ class PFA(RA):
 
                 if len(w) < b and V_new.sum() > p:
                     #print('Enqueue!', w + char)
-                    Q.enqueue((w + char, V_new))
+                    Q.enqueue(Node((w + char, V_new)))
 
         return False
 

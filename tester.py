@@ -1,3 +1,4 @@
+from common_header import *
 import PFA_utils
 
 # Given a PFA, test that PFA's operations.
@@ -31,11 +32,13 @@ def generate(n):
             print("Failed to verify")
 
 # Main
-if __name__ == "__main__":
-    import sys
 
+if __name__ == "__main__":
+
+    """
     automaton = PFA_utils.parser(sys.argv[1])  # sys.argv[1] for input file name
 
     test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
+    """
 
-generate(int(sys.argv[1]))
+    generate(int(sys.argv[1]))
