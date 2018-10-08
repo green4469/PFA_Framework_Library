@@ -90,7 +90,7 @@ def generator(fname):
         f.close()
 
 def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
-    alphabets = 'ab'
+    alphabets = 'abcdefghijklmnopqrstuvwxyz'
     alphabets = [str(alpha) for alpha in alphabets]
     nbL = len(alphabets)
     nbS = random.randint(num_state_min, num_state_max)
