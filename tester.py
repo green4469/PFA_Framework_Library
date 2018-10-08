@@ -31,10 +31,11 @@ def generate(n):
             print("Failed to verify")
 
 # Main
-import sys
+if __name__ == "__main__":
+    import sys
 
-automaton = PFA_utils.parser(sys.argv[1])  # sys.argv[1] for input file name
+    automaton = PFA_utils.parser(sys.argv[1])  # sys.argv[1] for input file name
 
-test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
+    test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
 
 generate(int(sys.argv[1]))

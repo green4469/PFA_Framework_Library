@@ -1,13 +1,19 @@
 import numpy as np
-class LevenshteinAutomaton:
-    def __init__(self, string, n):
+from DFA import DFA 
+import PFA
+import tester
+
+class LevenshteinAutomaton(DFA):
+    def __init__(self, string, max_edits):
+        super(LevenshteinAutomaton, self).__init__(nbL = 0, nbS = 0, initial_state = 0, states = [],
+                                                   transitions = {}, final_states = [])
         self.string = string
-        self.max_edits = n
+        self.max_edits = max_edits
         self.states = {} #key: levenshtein distance list, value : a state number
-        self.counter = 0
-        self.transitions = []
-        self.accepting_states = []
-        
+        alphabets = []
+        for alphabet in string:
+             alphabets.append(alphabet)
+        self.alphabets = list(set(alphabets))
         self.explore(self.start())
 
     def start(self):
@@ -52,59 +58,81 @@ class LevenshteinAutomaton:
         key = tuple(state) # lists can't be hashed in Python so convert to a tuple
         if key in self.states:
             return self.states[key]
-        i = self.counter # current state number
-        self.counter += 1
+        i = self.nbS # current state number
+        self.nbS += 1
         self.states[key] = i
         if self.is_match(state):
-            self.accepting_states.append(i)
+            self.final_states.append(i)
         for c in self.one_state_transitions(state) | set(['*']): # {transition} U {*}
             newstate = self.step(state, c)
             if self.can_match(newstate):
                 j = self.explore(newstate)
-                self.transitions.append((i, c, j))
+                self.transitions[(i,c)] = j
         return i
 
-    def transitions_redefine(self):
+    def transitions_matrix(self):
         #These transition matrices may be sparse matrices 
-        nbS = self.counter
+        nbS = self.nbS
         old_transitions = self.transitions
         self.transitions = {}
         for c in self.string:
             self.transitions[c] = np.zeros((nbS, nbS), dtype=np.float64)
         self.transitions[''] = np.zeros((nbS,nbS),dtype=np.float64)
-        for transition in old_transitions:
+        for (current_state, alphabet) in old_transitions:
+            next_state = old_transitions[(current_state, alphabet)]
+            """
             alphabet = transition[1]
             from_state = transition[0]
             to_state = transition[2]
+            """
             if alphabet is '*':
                 for key in self.transitions:
-                    self.transitions[key][from_state,to_state] = 1
+                    self.transitions[key][current_state,next_state] = 1
             else:
-                self.transitions[alphabet][from_state,to_state] = 1
+                self.transitions[alphabet][current_state,next_state] = 1
         if np.count_nonzero(self.transitions['']) == 0:
             self.transitions.pop('',None)
 
-        
-lev = LevenshteinAutomaton("a", 0)
-lev.transitions_redefine()
+if __name__ == "__main__":
+    at = tester.parser("./inputs/input_new.txt")
+    lev = LevenshteinAutomaton("ab", 0)
+    r = at.intersect_with_DFA(lev)
+    """
+    state0 = lev.start()
+    print(state0)
+    state1 = lev.step(state0, 'w')
+    print(state1)
+    state2 = lev.step(state1, 'o')
+    print(state2)
+    """
 
-"""
-state0 = lev.start()
-print(state0)
-state1 = lev.step(state0, 'w')
-print(state1)
-state2 = lev.step(state1, 'o')
-print(state2)
-"""
+    np.set_printoptions(precision=2)
+    print("nbS")
+    print(lev.nbS)
+    print("-------------------------------------")
+    print("states : value of dict.")
+    print(lev.states)
+    print("-------------------------------------")
+    print("transitions")
+    print(lev.transitions)
+    print("-------------------------------------")
+    print("accepting_states")
+    print(lev.final_states)
 
-print("counter = nbS")
-print(lev.counter)
-print("-------------------------------------")
-print("states : value of dict.")
-print(lev.states)
-print("-------------------------------------")
-print("transitions")
-print(lev.transitions)
-print("-------------------------------------")
-print("accepting_states")
-print(lev.accepting_states)
+    lev.transitions_matrix()
+    print("-------------------------------------")
+    print("transitions matrices")
+    print(lev.transitions)
+    print("-------------------------------------")
+
+    print("nbS")
+    print(r.nbS)
+    print("-------------------------------------")
+    print("transitions")
+    print(r.transitions)
+    print("-------------------------------------")
+    print("intial_states")
+    print(r.initial)
+    print("-------------------------------------")
+    print("final_states")
+    print(r.final)

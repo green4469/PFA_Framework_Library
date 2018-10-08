@@ -16,20 +16,20 @@ class RA(object):
         self.initial = initial
         self.final = final
         self.transitions = transitions
-        self.alphabet = self.transitions.keys()
+        self.alphabets = self.transitions.keys()
         self.epsilon_transition_removal()
 
     def print(self):
         """
         Print the definition of this automaton
         """
-        print('The alphabet:                ', self.alphabet)
+        print('The alphabet:                ', self.alphabets)
         print('The number of letters:       ', self.nbL)
         print('The number of states:        ', self.nbS)
         print('The initial probabilities:   ', self.initial)
         print('The final probabilities:     ', self.final)
         print('The transition matrixes:     ')
-        for char in self.alphabet:
+        for char in self.alphabets:
             print(char)
             print(self.transitions[char])
             print()
