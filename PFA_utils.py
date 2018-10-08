@@ -87,12 +87,49 @@ def generator(fname):
 
         for tp in transitions:
             f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
+        f.close()
+
+def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
+    alphabets = 'ab'
+    alphabets = [str(alpha) for alpha in alphabets]
+    nbL = len(alphabets)
+    nbS = random.randint(num_state_min, num_state_max)
+    nbT = 0 # the number of transitions
+
+    initial = [0 for i in range(nbS)]
+    idx = random.randint(0,nbS-1)
+    initial[idx] = 1
+
+    final = []
+    transitions = []
+
+    #alpha_state_comb = list(itertools.product(alphabets, range(nbS)))
+    for i in range(nbS):
+        T = random.randint(0, len(alphabets))  # the number of outgoing transitions for this state
+        nbT += T
+        alphabet_list = alphabets[:] # the remain alphabets
+        for i in range(len(alphabets) - T):
+            alphabet_list.remove(random.choice(alphabet_list))
+        probs = sum_to_one( T + 1 )  # the sum of outgoing transitions probabilities + final probability = 1
+        final.append(probs[0])
+        for j, alphabet in enumerate(alphabet_list):
+            transitions.append((i, alphabet, random.randint(0,nbS-1), probs[j+1]))
+
+    with open(fname, 'w') as f:
+        f.write("{} {} {}\n".format(nbS, nbL, nbT))
+
+        for i in range(nbS):
+            f.write("{} {}\n".format(initial[i], final[i]))
+
+        for tp in transitions:
+            f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
+    f.close()
 
 
 # Verify the generated PFA input files
 def verifier(fname):
     at = parser(fname)
-    if at.probability_cond()[0] and at.terminating_cond()[0] and np.sum(at.get_reachable_state_flag()) == 0.:
+    if at.probability_cond()[0] and at.terminating_cond()[0] and False not in at.get_reachable_state_flag():
         return True
     else:
         os.remove(fname)
@@ -100,7 +137,7 @@ def verifier(fname):
 
 def pfa2input(pfa, file_name):
     num_states = pfa.nbS
-    alphabet_size = len(pfa.alphabet)
+    alphabet_size = len(pfa.alphabets)
     num_transitions = 0
     for key in pfa.transitions.keys():
         num_transitions += np.count_nonzero(pfa.transitions[key])
@@ -136,7 +173,7 @@ def from_initial_to_state_string(at, target_state):
             return current_string
         
         # Find the successive nodes of the current node from the given automaton
-        for a, tm in at.transitions.iteritems():
+        for a, tm in at.transitions.items():
             # Each alphabet has one next state. (Since its sub-DPFA)
             # Find that state 
             next_state = np.argmax(tm[current_state])
@@ -149,13 +186,25 @@ def from_initial_to_state_string(at, target_state):
     raise Exception('There exist unreachable state')
 
 def normalizer(at):
-    at.final = np.zeros((1,nbs), dtype=np.float64)
-    for current_state in range(nbS):
-        w = from_initial_to_state_string(at, current_state)
-        at.final[current_state] = at.parse(w) / at.prefix_prob(w)
+    new_final = np.zeros(at.nbS, dtype=np.float64)
+    new_transitions = {}
+    for alpha in at.alphabets:
+        new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64) 
 
-        for a, tm in at.transitions.iteritems():
+    for current_state in range(at.nbS):
+        w = from_initial_to_state_string(at, current_state)
+        print("#######")
+        print(w)
+        print(at.parse(w))
+        print(at.prefix_prob(w))
+        print("#######")
+        new_final[current_state] = at.parse(w) / at.prefix_prob(w)
+
+        for a, tm in at.transitions.items():
             next_state = np.argmax(tm[current_state])
-            tm[a][current_state, next_state] = at.prefix_prob(w+a) / at.prefix_prob(w)
+            new_transitions[a][current_state, next_state] = at.prefix_prob(w+a) / at.prefix_prob(w)
+
+    at.final = new_final
+    at.transitions = new_transitions
     return at
 

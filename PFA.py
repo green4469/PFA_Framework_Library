@@ -2,6 +2,7 @@ from common_header import *
 
 from RA import RA
 
+from DFA import DFA
 from DS import Node, Queue
 
 
@@ -242,32 +243,59 @@ class PFA(RA):
             if high - low < epsilon and w != False:
                 return w
 
+    def k_MPS_bf(self, x, j):
+        x_list = list(x)  # make input string x to a list
+
+        # When k = 1
+        if k == 1:
+            x_list = list(x)
+
+            # Calculate all probabilities of possible strings where (k=1, x)
+            most_prob = 0
+            MPS = []
+            for i in range(len(x_list)):
+                for char in self.alphabets:
+                    prob = prefix_list[i] @ self.transitions[char] @ suffix_list[i]
+                    if prob > most_prob:
+                        most_prob = prob
+                        MPS = x_list[:]
+                        MPS[i] = char
+
+            return ''.join(MPS)
+
+
+        # Find all possible combinations when k using cartesian product
+        # nCk, Sigma^k?
+        alpha_comb = list(itertools.product(self.alphabets, repeat=k))  # Cartesian product for repeat k, e.g., A = ['a', 'b']; when k = 3; A x A x A
+        pos_comb = itertools.combinations(range(n), k)  # Combinations for posstible k positions
+
+        # Calculate probabilities
+        # O(nCk * Sigma^k * k)
+        most_prob = 0
+        MPS = []
+        for pos_tuple in pos_comb:
+            for alpha_tuple in alpha_comb:
+                MPS_candidate = x_list[:]
+
+                for i in range(k):
+                    MPS_candidate[pos_tuple[i]] = alpha_comb[i]
+
+                prob = self.parse(''.join(MPS_candidate))
+                
+                if prob > most_prob:
+                    most_prob = prob
+                    MPS = MPS_candidate[:]
+
+        # Find k-MPS
+        MPS = ''.join(MPS)
+
+        return MPS
+
     def k_MPS(self, x, k):
         """
         Return MPS where the string is within 1 hamming distance with given string x (k = 1)
         Input: an Automaton, a string x, an positive integer k
         Output: MPS under k
-        """
-
-        """ Naive algorithm
-        strings = []  # all possible strings derived from x within hamming distance 1
-
-        # Make the given string x to a list
-        x_list = list(x)
-
-        # Add all possible strings to list
-        for i in range(len(x_list)):
-            original = x_list[i]
-            for char in self.alphabet:
-                x_list[i] = char
-                strings.append(''.join(x_list))
-            x_list[i] = original
-
-        # Delete duplicates and sort
-        strings = set(strings)
-        strings = list(strings)
-        strings.sort()
-        print(strings)
         """
 
         x_list = list(x)  # make input string x to a list
@@ -328,7 +356,6 @@ class PFA(RA):
 
         # Find all possible combinations when k using cartesian product
         # nCk, Sigma^k?
-        import itertools
         alpha_comb = list(itertools.product(self.alphabets, repeat=k))  # Cartesian product for repeat k, e.g., A = ['a', 'b']; when k = 3; A x A x A
         pos_comb = itertools.combinations(range(n), k)  # Combinations for posstible k positions
 
@@ -387,5 +414,33 @@ class PFA(RA):
                     transitions[c][state_mapping[q],state_mapping[q_]] = 0
         return RA(nbL, nbS, initial, final, transitions) # sub-PFA    
 
+    """
+    "Remove Probability"
+    Input self (DPFA)
+    !!! NOT COMPLETED !!!
+    Output DFA
+    Description: if this PFA is DPFA,
+            self.dpfa2dfa returns DFA that has no weights of probabilities
+    """
+    def dpfa2dfa(self):
+        new_transitions = {}
+        for alphabet, transition in self.transitions.items():
+            new_transitions[alphabet] = np.ceil(transition).astype(int)
+        print(new_transitions)
+        states = [i for i in range(self.nbS)]
+        initial_state = np.where(self.initial == 1.0)
+        dfa = DFA(nbL = self.nbL, nbS = self.nbS, initial_state = initial_state, 
+                    states = states, transitions = new_transitions)
+        return dfa
+
+    def make_string_file(self, file_name, num_of_strings):
+        f = open(file_name, "w")
+        string_list = []
+        while len(string_list) < num_of_strings:
+            string_list.append(self.generate())
+        for string in string_list:
+            f.write("{}\n".format(string))
+        f.close()
+        
 if __name__ == "__main__":
     pass
