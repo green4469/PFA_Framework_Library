@@ -243,26 +243,9 @@ class PFA(RA):
             if high - low < epsilon and w != False:
                 return w
 
-    def k_MPS_bf(self, x, j):
+    def k_MPS_bf(self, x, k):
         x_list = list(x)  # make input string x to a list
-
-        # When k = 1
-        if k == 1:
-            x_list = list(x)
-
-            # Calculate all probabilities of possible strings where (k=1, x)
-            most_prob = 0
-            MPS = []
-            for i in range(len(x_list)):
-                for char in self.alphabets:
-                    prob = prefix_list[i] @ self.transitions[char] @ suffix_list[i]
-                    if prob > most_prob:
-                        most_prob = prob
-                        MPS = x_list[:]
-                        MPS[i] = char
-
-            return ''.join(MPS)
-
+        n = len(x_list)
 
         # Find all possible combinations when k using cartesian product
         # nCk, Sigma^k?
@@ -278,7 +261,7 @@ class PFA(RA):
                 MPS_candidate = x_list[:]
 
                 for i in range(k):
-                    MPS_candidate[pos_tuple[i]] = alpha_comb[i]
+                    MPS_candidate[pos_tuple[i]] = alpha_tuple[i]
 
                 prob = self.parse(''.join(MPS_candidate))
                 

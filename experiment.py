@@ -19,17 +19,19 @@ DPFA_input_files = os.listdir(sys.argv[1])
 k_min_max = str2list(sys.argv[4])
 k_range = range(k_min_max[0], k_min_max[1]+1)
 
-with open(string_files[i], 'r') as f:
+with open(sys.argv[2], 'r') as f:
     strings = f.readlines()
     strings = [string[:-1] for string in strings]  # remove '\n'
 f = open('./result_{}.csv'.format(sys.argv[3]), 'w+')
 f.write('n,k,rt\n')
 
 for input_file in DPFA_input_files:
-    DPFA_instance = PFA_utils.parse(input_file)
+    DPFA_instance = PFA_utils.parser('inputs/pfa/'+input_file)
     for k in k_range:
-        for string in strigns:
+        for string in strings:
             n = len(string)
+            if n < k:
+                continue
             st = time.time()
             if sys.argv[3] == 'bf':
                 k_MPS = DPFA_instance.k_MPS_bf(string, k)
@@ -38,7 +40,7 @@ for input_file in DPFA_input_files:
             et = time.time()
 
             interval = et-st
-            print("running time of {}: {:.4f}".format(sys.argv[3], et))
+            print("n = {}, k = {}, running time of {}: {:.4f}".format(n, k, sys.argv[3], interval))
             f.write('{},{},{:.4f}\n'.format(n, k, interval))
 
 f.close()
