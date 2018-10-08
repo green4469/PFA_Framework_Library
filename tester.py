@@ -51,4 +51,6 @@ if __name__ == "__main__":
 
     test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
     """
-    DPFAgenerate(int(sys.argv[1]))
+    #DPFAgenerate(int(sys.argv[1]))
+    dpfa = PFA_utils.parser("inputs/input1.txt") # DPFA
+    dfa = dpfa.dpfa2dfa()

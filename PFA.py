@@ -7,7 +7,7 @@ import copy
 #import editdistance
 
 from RA import RA
-
+from DFA import DFA
 from DS import Queue
 
 
@@ -392,6 +392,24 @@ class PFA(RA):
                 else:
                     transitions[c][state_mapping[q],state_mapping[q_]] = 0
         return RA(nbL, nbS, initial, final, transitions) # sub-PFA    
+
+    """
+    "Remove Probability"
+    Input self (DPFA)
+    Output DFA
+    Description: if this PFA is DPFA,
+            self.dpfa2dfa returns DFA that has no weights of probabilities
+    """
+    def dpfa2dfa(self):
+        dfa = DFA(nbL = self.nbL, nbS = self.nbS)
+        new_transitions = {}
+        for alphabet, transition in self.transitions.items():
+            new_transitions[alphabet] = np.ceil(transition)
+        states = [i for i in range(self.nbS)]
+        dfa.states = states
+        dfa.transitions = new_transitions
+        dfa.initial_state = np.where(self.initial == 1.0)
+        return dfa
 
 if __name__ == "__main__":
     pass
