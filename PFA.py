@@ -396,20 +396,30 @@ class PFA(RA):
     """
     "Remove Probability"
     Input self (DPFA)
+    !!! NOT COMPLETED !!!
     Output DFA
     Description: if this PFA is DPFA,
             self.dpfa2dfa returns DFA that has no weights of probabilities
     """
     def dpfa2dfa(self):
-        dfa = DFA(nbL = self.nbL, nbS = self.nbS)
         new_transitions = {}
         for alphabet, transition in self.transitions.items():
-            new_transitions[alphabet] = np.ceil(transition)
+            new_transitions[alphabet] = np.ceil(transition).astype(int)
+        print(new_transitions)
         states = [i for i in range(self.nbS)]
-        dfa.states = states
-        dfa.transitions = new_transitions
-        dfa.initial_state = np.where(self.initial == 1.0)
+        initial_state = np.where(self.initial == 1.0)
+        dfa = DFA(nbL = self.nbL, nbS = self.nbS, initial_state = initial_state, 
+                    states = states, transitions = new_transitions)
         return dfa
 
+    def make_string_file(self, file_name, num_of_strings):
+        f = open(file_name, "w")
+        dic = {}
+        while len(dic) < num_of_strings:
+            dic[self.generate()] = 0
+        for string in dic:
+            f.write("{}\n".format(string))
+        f.close()
+        
 if __name__ == "__main__":
     pass

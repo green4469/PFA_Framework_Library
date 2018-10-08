@@ -1,0 +1,16 @@
+4 2 9
+1 0
+0 0.4
+0 0.2
+0 0.6
+0 a 2 0.5
+1 a 3 0.1
+2 a 3 0.1
+3 a 3 0.2
+0 epsilon 1 0.5
+1 epsilon 1 0.5
+2 epsilon 1 0.2
+2 epsilon 2 0.5
+3 epsilon 2 0.2
+
+#example in Chapter 5.2 Probabilistic automata P.113

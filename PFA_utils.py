@@ -93,7 +93,7 @@ def generator(fname):
 
         for tp in transitions:
             f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
-    f.close()
+        f.close()
 
 def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
     alphabets = 'ab'

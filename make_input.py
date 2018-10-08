@@ -32,13 +32,15 @@ def generate(n):
 
 def DPFAgenerate(n):
     idx = 1
-    for _ in range(n):
+    while(True):
         fname = 'inputs/input{}.txt'.format(idx)
         PFA_utils.DPFAgenerator(fname)
         print("Created an input file")
         if PFA_utils.verifier(fname):
             print("Verified #{} input.".format(idx))
             idx += 1
+            if idx == n:
+                return
         else:
             print("Failed to verify")
     
@@ -51,6 +53,6 @@ if __name__ == "__main__":
 
     test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
     """
-    #DPFAgenerate(int(sys.argv[1]))
-    pfa = PFA_utils.parser("inputs/input_new.txt") # PFA
-    pfa.make_string_file("inputs/string.txt",10)
+    DPFAgenerate(int(sys.argv[1]))
+    #dpfa = PFA_utils.parser("inputs/input1.txt") # DPFA
+    #dfa = dpfa.dpfa2dfa()
