@@ -242,32 +242,59 @@ class PFA(RA):
             if high - low < epsilon and w != False:
                 return w
 
+    def k_MPS_bf(self, x, j):
+        x_list = list(x)  # make input string x to a list
+
+        # When k = 1
+        if k == 1:
+            x_list = list(x)
+
+            # Calculate all probabilities of possible strings where (k=1, x)
+            most_prob = 0
+            MPS = []
+            for i in range(len(x_list)):
+                for char in self.alphabets:
+                    prob = prefix_list[i] @ self.transitions[char] @ suffix_list[i]
+                    if prob > most_prob:
+                        most_prob = prob
+                        MPS = x_list[:]
+                        MPS[i] = char
+
+            return ''.join(MPS)
+
+
+        # Find all possible combinations when k using cartesian product
+        # nCk, Sigma^k?
+        alpha_comb = list(itertools.product(self.alphabets, repeat=k))  # Cartesian product for repeat k, e.g., A = ['a', 'b']; when k = 3; A x A x A
+        pos_comb = itertools.combinations(range(n), k)  # Combinations for posstible k positions
+
+        # Calculate probabilities
+        # O(nCk * Sigma^k * k)
+        most_prob = 0
+        MPS = []
+        for pos_tuple in pos_comb:
+            for alpha_tuple in alpha_comb:
+                MPS_candidate = x_list[:]
+
+                for i in range(k):
+                    MPS_candidate[pos_tuple[i]] = alpha_comb[i]
+
+                prob = self.parse(''.join(MPS_candidate))
+                
+                if prob > most_prob:
+                    most_prob = prob
+                    MPS = MPS_candidate[:]
+
+        # Find k-MPS
+        MPS = ''.join(MPS)
+
+        return MPS
+
     def k_MPS(self, x, k):
         """
         Return MPS where the string is within 1 hamming distance with given string x (k = 1)
         Input: an Automaton, a string x, an positive integer k
         Output: MPS under k
-        """
-
-        """ Naive algorithm
-        strings = []  # all possible strings derived from x within hamming distance 1
-
-        # Make the given string x to a list
-        x_list = list(x)
-
-        # Add all possible strings to list
-        for i in range(len(x_list)):
-            original = x_list[i]
-            for char in self.alphabet:
-                x_list[i] = char
-                strings.append(''.join(x_list))
-            x_list[i] = original
-
-        # Delete duplicates and sort
-        strings = set(strings)
-        strings = list(strings)
-        strings.sort()
-        print(strings)
         """
 
         x_list = list(x)  # make input string x to a list
@@ -328,7 +355,6 @@ class PFA(RA):
 
         # Find all possible combinations when k using cartesian product
         # nCk, Sigma^k?
-        import itertools
         alpha_comb = list(itertools.product(self.alphabets, repeat=k))  # Cartesian product for repeat k, e.g., A = ['a', 'b']; when k = 3; A x A x A
         pos_comb = itertools.combinations(range(n), k)  # Combinations for posstible k positions
 

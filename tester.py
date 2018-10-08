@@ -55,4 +55,10 @@ if __name__ == "__main__":
     """
 
     #generate(int(sys.argv[1]))
-    DPFAgenerate(int(sys.argv[1]))
+    #DPFAgenerate(int(sys.argv[1]))
+    #PFA_utils.pfa2input(PFA_utils.normalizer(PFA_utils.parser('inputs/input1.txt')), 'new.txt')
+
+
+    # DFA, DPFA -> sub-DPFA -> DPFA
+    
+
