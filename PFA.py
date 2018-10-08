@@ -414,10 +414,10 @@ class PFA(RA):
 
     def make_string_file(self, file_name, num_of_strings):
         f = open(file_name, "w")
-        dic = {}
-        while len(dic) < num_of_strings:
-            dic[self.generate()] = 0
-        for string in dic:
+        string_list = []
+        while len(string_list) < num_of_strings:
+            string_list.append(self.generate())
+        for string in string_list:
             f.write("{}\n".format(string))
         f.close()
         

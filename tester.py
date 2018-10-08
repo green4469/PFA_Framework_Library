@@ -52,5 +52,6 @@ if __name__ == "__main__":
     test(automaton, sys.argv[2], int(sys.argv[3]))  # sys.argv[2] for string, 3 for k
     """
     #DPFAgenerate(int(sys.argv[1]))
-    pfa = PFA_utils.parser("inputs/input_new.txt") # PFA
-    pfa.make_string_file("inputs/string.txt",10)
+    pfa = PFA_utils.parser("inputs/pfa/input2.txt") # PFA
+    print(pfa.k_MPS('baaa',1))
+    #pfa.make_string_file("inputs/string.txt",10)
