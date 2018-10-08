@@ -4,6 +4,7 @@ import math
 import copy
 import random
 import itertools
+import os
 
 from PFA import PFA
 
@@ -92,6 +93,43 @@ def generator(fname):
 
         for tp in transitions:
             f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
+    f.close()
+
+def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
+    alphabets = 'ab'
+    alphabets = [str(alpha) for alpha in alphabets]
+    nbL = len(alphabets)
+    nbS = random.randint(num_state_min, num_state_max)
+    nbT = 0 # the number of transitions
+
+    initial = [0 for i in range(nbS)]
+    idx = random.randint(0,nbS-1)
+    initial[idx] = 1
+
+    final = []
+    transitions = []
+
+    #alpha_state_comb = list(itertools.product(alphabets, range(nbS)))
+    for i in range(nbS):
+        T = random.randint(0, len(alphabets))  # the number of outgoing transitions for this state
+        nbT += T
+        alphabet_list = alphabets[:] # the remain alphabets
+        for i in range(len(alphabets) - T):
+            alphabet_list.remove(random.choice(alphabet_list))
+        probs = sum_to_one( T + 1 )  # the sum of outgoing transitions probabilities + final probability = 1
+        final.append(probs[0])
+        for j, alphabet in enumerate(alphabet_list):
+            transitions.append((i, alphabet, random.randint(0,nbS-1), probs[j+1]))
+
+    with open(fname, 'w') as f:
+        f.write("{} {} {}\n".format(nbS, nbL, nbT))
+
+        for i in range(nbS):
+            f.write("{} {}\n".format(initial[i], final[i]))
+
+        for tp in transitions:
+            f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
+    f.close()
 
 
 # Verify the generated PFA input files
