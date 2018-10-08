@@ -2,6 +2,7 @@ from common_header import *
 
 from RA import RA
 
+from DFA import DFA
 from DS import Node, Queue
 
 
@@ -413,5 +414,33 @@ class PFA(RA):
                     transitions[c][state_mapping[q],state_mapping[q_]] = 0
         return RA(nbL, nbS, initial, final, transitions) # sub-PFA    
 
+    """
+    "Remove Probability"
+    Input self (DPFA)
+    !!! NOT COMPLETED !!!
+    Output DFA
+    Description: if this PFA is DPFA,
+            self.dpfa2dfa returns DFA that has no weights of probabilities
+    """
+    def dpfa2dfa(self):
+        new_transitions = {}
+        for alphabet, transition in self.transitions.items():
+            new_transitions[alphabet] = np.ceil(transition).astype(int)
+        print(new_transitions)
+        states = [i for i in range(self.nbS)]
+        initial_state = np.where(self.initial == 1.0)
+        dfa = DFA(nbL = self.nbL, nbS = self.nbS, initial_state = initial_state, 
+                    states = states, transitions = new_transitions)
+        return dfa
+
+    def make_string_file(self, file_name, num_of_strings):
+        f = open(file_name, "w")
+        string_list = []
+        while len(string_list) < num_of_strings:
+            string_list.append(self.generate())
+        for string in string_list:
+            f.write("{}\n".format(string))
+        f.close()
+        
 if __name__ == "__main__":
     pass
