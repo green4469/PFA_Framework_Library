@@ -108,7 +108,7 @@ def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
         T = random.randint(0, len(alphabets))  # the number of outgoing transitions for this state
         nbT += T
         alphabet_list = alphabets[:] # the remain alphabets
-        for i in range(len(alphabets) - T):
+        for _ in range(len(alphabets) - T):
             alphabet_list.remove(random.choice(alphabet_list))
         probs = sum_to_one( T + 1 )  # the sum of outgoing transitions probabilities + final probability = 1
         final.append(probs[0])
