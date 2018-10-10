@@ -22,7 +22,7 @@ k_range = range(k_min_max[0], k_min_max[1]+1)
 with open(sys.argv[2], 'r') as f:
     strings = f.readlines()
     strings = [string[:-1] for string in strings]  # remove '\n'
-f = open('./result_{}.csv'.format(sys.argv[3]), 'w+')
+f = open('./test_result_{}.csv'.format(sys.argv[3]), 'w+')
 f.write('n,k,rt\n')
 
 for input_file in DPFA_input_files:
@@ -30,7 +30,7 @@ for input_file in DPFA_input_files:
     for k in k_range:
         for string in strings:
             n = len(string)
-            if n < k:
+            if n < k or n < 20:
                 continue
             st = time.time()
             if sys.argv[3] == 'bf':

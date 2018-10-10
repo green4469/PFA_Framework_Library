@@ -1,6 +1,6 @@
 .vscode
 __pycache__
 yumin_dev.txt
-.pyc
-.swp
+*.pyc
+*.swp
 result_*.csv
