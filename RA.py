@@ -63,47 +63,48 @@ class RA(object):
     Description     
     """
     def epsilon_transition_removal(self):
-        """
-        Step 1: If there is more than one initial state, add a new initial state and epsilon-transitions
-                from this state to each of the previous initial states,
-                with probability equal to that of the state being initial.
-        """
-        #Algorithm 5.7: Transforming the epsilon-PFA into a epsilon-PFA with just one initial state.
-        if np.count_nonzero(self.initial) > 1:
-            Q = self.nbS
-            Q_prime = Q + 1
-            initial_original = self.initial[:]
-
-            #new initial probability with Ip(q_0) = 1
-            initial_prime = np.zeros((Q_prime), np.float64)
-            initial_prime[0] = 1
-
-            #new final probability Fp(q_0) = 0
-            final_prime = np.zeros((Q_prime), np.float64)
-            final_prime[1:Q_prime] = self.final[:]
-
-            #return new Automata
-            self.nbS = Q_prime
-            self.initial = initial_prime
-            self.final = final_prime
-            
-            #new transition with just one initial state q_0
-            for key in self.transitions.keys():
-                temp = self.transitions[key][:,:]
-                self.transitions[key] = np.zeros((Q_prime,Q_prime), np.float64)
-                self.transitions[key][1:Q_prime, 1:Q_prime] = temp[:,:]
-            self.transitions['epsilon'] = np.zeros((Q_prime,Q_prime),np.float64)
-            self.nbL += 1
-            self.transitions['epsilon'][0,1:Q_prime] = initial_original[:]
-        """
-        Step 2: Algorithm 5.8 iteratively removes a epsilon-loop if there is one,
-                and if not the epsilone-transition with maximal extremity.
-        """
-        #Algorithm 5.8: Eliminating epsilon-transitions
-        Q = self.nbS
-        #while 'there still are epsilon-transitions' do
+        #if there are epsilon-transitions do
         if 'epsilon' in self.transitions:
+            """
+            Step 1: If there is more than one initial state, add a new initial state and epsilon-transitions
+                    from this state to each of the previous initial states,
+                    with probability equal to that of the state being initial.
+            """
+            #Algorithm 5.7: Transforming the epsilon-PFA into a epsilon-PFA with just one initial state.
+            if np.count_nonzero(self.initial) > 1:
+                Q = self.nbS
+                Q_prime = Q + 1
+                initial_original = self.initial[:]
+
+                #new initial probability with Ip(q_0) = 1
+                initial_prime = np.zeros((Q_prime), np.float64)
+                initial_prime[0] = 1
+
+                #new final probability Fp(q_0) = 0
+                final_prime = np.zeros((Q_prime), np.float64)
+                final_prime[1:Q_prime] = self.final[:]
+
+                #return new Automata
+                self.nbS = Q_prime
+                self.initial = initial_prime
+                self.final = final_prime
+                
+                #new transition with just one initial state q_0
+                for key in self.transitions.keys():
+                    temp = self.transitions[key][:,:]
+                    self.transitions[key] = np.zeros((Q_prime,Q_prime), np.float64)
+                    self.transitions[key][1:Q_prime, 1:Q_prime] = temp[:,:]
+                self.transitions['epsilon'] = np.zeros((Q_prime,Q_prime),np.float64)
+                self.nbL += 1
+                self.transitions['epsilon'][0,1:Q_prime] = initial_original[:]
+            """
+            Step 2: Algorithm 5.8 iteratively removes a epsilon-loop if there is one,
+                    and if not the epsilone-transition with maximal extremity.
+            """
+            #Algorithm 5.8: Eliminating epsilon-transitions
+            Q = self.nbS
             #time complexity: O(|e|*|Q|^2*|k|), |e|:the num of epsilon transition, |k|:the num of kinds of transitions
+            #while 'there still are epsilon-transitions' do
             while np.count_nonzero(self.transitions['epsilon']) > 0:
                 #if there exists a epsilon-loop (q,epsilon,q, P) then
                 for i in range(self.transitions['epsilon'].shape[0]):

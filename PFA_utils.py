@@ -16,7 +16,6 @@ def parser(fname):
     with open(fname, 'r') as f:
         # Read the first line and make the string into list. Then automatically pack and unpack it to 3 identifiers, nbS, nbL, nbT
         nbS, nbL, nbT = map(int, f.readline().split(' '))  # nbs for the # of states, nbL for the # of alphabets, nbT for the # of transitions. 
-
         initial = []
         final = []
         transitions = {}
@@ -45,7 +44,7 @@ def parser(fname):
         final = np.asarray(final, dtype=np.float64)
 
 
-        at = PFA(nbL, nbS, initial, final, transitions)
+        at = PFA(nbL = nbL, nbS= nbS, initial = initial, final = final, transitions = transitions)
         return at
 
 # Generate a random distribution

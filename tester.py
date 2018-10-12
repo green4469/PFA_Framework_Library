@@ -60,4 +60,5 @@ if __name__ == "__main__":
 
     # DFA, DPFA -> sub-DPFA -> DPFA
     
-
+    pfa = PFA_utils.parser('./sDPFA.txt')
+    pfa.print()
