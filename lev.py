@@ -1,7 +1,7 @@
 from common_header import *
 from DFA import DFA 
 import PFA
-import tester
+import PFA_utils
 
 class LevenshteinAutomaton(DFA):
     def __init__(self, string, max_edits):
@@ -94,7 +94,7 @@ class LevenshteinAutomaton(DFA):
             self.transitions.pop('',None)
 
 if __name__ == "__main__":
-    at = tester.parser("./inputs/input_new.txt")
+    at = PFA_utils.parser("./inputs/pfa/input0.txt")
     lev = LevenshteinAutomaton("ab", 0)
     r = at.intersect_with_DFA(lev)
     """

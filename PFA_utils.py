@@ -193,11 +193,6 @@ def normalizer(at):
 
     for current_state in range(at.nbS):
         w = from_initial_to_state_string(at, current_state)
-        print("#######")
-        print(w)
-        print(at.parse(w))
-        print(at.prefix_prob(w))
-        print("#######")
         new_final[current_state] = at.parse(w) / at.prefix_prob(w)
 
         for a, tm in at.transitions.items():
