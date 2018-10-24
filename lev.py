@@ -12,7 +12,7 @@ class LevenshteinAutomaton(DFA):
         self.states = {} #key: levenshtein distance list, value : a state number
         alphabets = []
         for alphabet in string:
-             alphabets.append(alphabet)
+            alphabets.append(alphabet)
         self.alphabets = list(set(alphabets))
         self.explore(self.start())
 
