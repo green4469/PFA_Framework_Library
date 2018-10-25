@@ -69,6 +69,7 @@ if __name__ == "__main__":
         w1 = dpfa.MPS()
         w2 = dpfa.MPS_sampling()
         if w1 != w2:
+            print(PFA_utils.verifier('./inputs/pfa/input{}.txt'.format(i)))
             print("MPS {} MPS_samping {} when input {}".format(w1, w2, i))
             print("probs: {}, {}".format(dpfa.parse(w1), dpfa.parse(w2)))
             exit()

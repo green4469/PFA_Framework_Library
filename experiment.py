@@ -1,6 +1,8 @@
 from common_header import *
+import lev
 
 import PFA_utils
+import PFA
 
 # Read input file
 
@@ -35,8 +37,15 @@ for input_file in DPFA_input_files:
             st = time.time()
             if sys.argv[3] == 'bf':
                 k_MPS = DPFA_instance.k_MPS_bf(string, k)
-            else:
+            elif sys.argv[3] == 'dp':
                 k_MPS = DPFA_instance.k_MPS(string, k)
+            elif sys.argv[3] == 'is':
+                l = lev.LevinshteinAutomata(string, k)
+                sub_dpfa = DPFA_instance.intersect_with_DFA(l)
+                sub_dpfa = PFA.PFA(sub_dpfa.nbL, sub_dpfa.nbS, sub_dpfa.initial, sub_dpfa.final, sub_dpfa.transitions)
+                dpfa = PFA_utils.normalizer(sub_dpfa)
+                k_MPS = dpfa.MPS_sampling()
+
             et = time.time()
 
             interval = et-st
