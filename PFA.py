@@ -5,6 +5,9 @@ from RA import RA
 from DFA import DFA
 from DS import Node, Queue
 
+import PFA_utils
+import lev
+
 
 class PFA(RA):
     def __init__(self, nbL, nbS, initial, final, transitions):
@@ -222,7 +225,7 @@ class PFA(RA):
 
         return False
 
-    def MPS(self):
+    def MPS_sampling(self):
         epsilon = 0.0001
         low = 0.0
         high = 1.0
@@ -242,6 +245,56 @@ class PFA(RA):
             # If high-low is lower than epsilon and w is not False, then break
             if high - low < epsilon and w != False:
                 return w
+
+    def MPS(self):
+        def PP(w):
+            try:
+                return min(self.prefix_prob(w), (self.nbS+1)**2/len(w))
+            except:
+                return self.prefix_prob(w)
+        # Initially, the result string is empty string (lambda)
+        w = ''
+
+        current_prob = 0
+        current_best = ''
+
+        # Instantiate a Queue
+        Q = Queue()
+        Q.enqueue(Node(w))
+
+        Continue = True
+
+        while not Q.is_empty() and Continue:
+            w = (Q.dequeue()).data
+            if w == 'b':
+                print("b detected")
+                exit()
+                """
+                z is before b
+                PP(z) > PP(b)
+                """
+
+            if PP(w) > current_prob:
+                p = self.parse(w)
+
+                if p > current_prob:
+                    current_prob = p
+                    current_best = w
+
+                for char in self.alphabets:
+                    if PP(w+char) > current_prob:
+                        Q.enqueue(Node(w+char))
+            else:
+                Continue = False
+                print("continue false set")
+                print("current_prob: {}".format(current_prob))
+                print("PP(b): {}".format(PP('b')))
+                print("PP(z): {}".format(PP('z')))
+
+        return current_best
+
+
+
 
     def k_MPS_bf(self, x, k):
         x_list = list(x)  # make input string x to a list

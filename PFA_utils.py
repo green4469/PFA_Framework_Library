@@ -126,8 +126,9 @@ def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
 
 
 # Verify the generated PFA input files
-def verifier(fname):
-    at = parser(fname)
+def verifier(fname=None, at=None, isFile=True):
+    if isFile:
+        at = parser(fname)
     if at.probability_cond()[0] and at.terminating_cond()[0] and False not in at.get_reachable_state_flag():
         return True
     else:
@@ -185,18 +186,24 @@ def from_initial_to_state_string(at, target_state):
     raise Exception('There exist unreachable state')
 
 def normalizer(at):
+    new_initial = np.zeros(at.nbS, dtype=np.float64)
+    new_initial[0] = 1.0
+    at.initial = new_initial
+
     new_final = np.zeros(at.nbS, dtype=np.float64)
     new_transitions = {}
     for alpha in at.alphabets:
         new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64) 
 
+    ##
     for current_state in range(at.nbS):
         w = from_initial_to_state_string(at, current_state)
-        new_final[current_state] = at.parse(w) / at.prefix_prob(w)
+        new_final[current_state] = at.parse(w) / at.prefix_prob2(w)
 
         for a, tm in at.transitions.items():
             next_state = np.argmax(tm[current_state])
-            new_transitions[a][current_state, next_state] = at.prefix_prob(w+a) / at.prefix_prob(w)
+            new_transitions[a][current_state, next_state] = at.prefix_prob2(w+a) / at.prefix_prob2(w)
+    ##
 
     at.final = new_final
     at.transitions = new_transitions

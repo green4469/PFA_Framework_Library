@@ -59,6 +59,19 @@ if __name__ == "__main__":
 
 
     # DFA, DPFA -> sub-DPFA -> DPFA
-    
-    pfa = PFA_utils.parser('./sDPFA.txt')
-    pfa.print()
+    for i in range(4, 10):
+        dpfa = PFA_utils.parser('./inputs/pfa/input{}.txt'.format(i))
+        #sub_dpfa.print()
+        #dpfa = PFA_utils.normalizer(sub_dpfa)
+        dpfa.print()
+        #print(PFA_utils.verifier(at=dpfa, isFile=False))
+        #print('results of MPS() and MPS_sampling() for input{}.txt'.format(i))
+        w1 = dpfa.MPS()
+        w2 = dpfa.MPS_sampling()
+        if w1 != w2:
+            print("MPS {} MPS_samping {} when input {}".format(w1, w2, i))
+            print("probs: {}, {}".format(dpfa.parse(w1), dpfa.parse(w2)))
+            exit()
+            
+            
+
