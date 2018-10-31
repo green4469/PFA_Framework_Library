@@ -202,6 +202,10 @@ def normalizer(at):
 
         for a, tm in at.transitions.items():
             next_state = np.argmax(tm[current_state])
+
+            if tm[current_state][next_state] == 0.0:  # What if there's no next state for this alphabet?
+                continue
+
             new_transitions[a][current_state, next_state] = at.prefix_prob2(w+a) / at.prefix_prob2(w)
     ##
 
