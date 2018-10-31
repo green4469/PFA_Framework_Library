@@ -20,7 +20,6 @@ class DFA:
                     #raise InvalidDFA
                 next_state = np.where(transitions[alphabet][current_state] == 1)[0][0]
                 self.transitions[(current_state,alphabet)] = next_state 
-        self.final_states = final_states
 
         """
         transitions input : {(current_state, alphabet), next_state}
@@ -34,10 +33,15 @@ class DFA:
             if alphabet not in self.alphabets:
                 return False
             current_state = self.transitions[(current_state,alphabet)]
-        if current_state in final_states:
+        if self.final_states[current_state] == 1:
             return True
         else:
             return False
+
+    def print(self):
+        print('I', self.states)
+        print('F', self.final_states)
+        print('T', self.transitions)
     
 if __name__ == "__main__":
     nbL = 2

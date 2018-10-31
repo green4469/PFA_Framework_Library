@@ -1,6 +1,10 @@
 from common_header import *
 
+from DFA import DFA
 from PFA import PFA
+
+from DS import Queue, Node
+
 
 
 # Receive relative numbers e.g., 3/5
@@ -212,4 +216,61 @@ def normalizer(at):
     at.final = new_final
     at.transitions = new_transitions
     return at
+
+
+def DFA_constructor(w, k, sigma):
+    n = len(w)  # the length of input string w
+
+    # Find the number of states from w, k
+    nbS = 0
+    for i in range(k+1):
+        nbS += n+1-i
+    nbS += 1  # Consider the sink state 
+
+    # Decaler empty initial, transition, final probabilities
+    initial = np.zeros(nbS, dtype=np.float64) 
+    final = np.zeros(nbS, dtype=np.float64)
+    transition = {}
+    for alphabet in sigma: transition[alphabet] = np.zeros((nbS,nbS), dtype=np.float64) 
+    # Define the final states
+    final_index = n
+    for i in range(k+1):
+        final[final_index] = 1.0
+        final_index += n-i
+
+    # Define the initial state
+    initial[0] = 1.0
+
+    # Define the transition matrices
+    current_state = 0
+    w_index = 0
+
+    for i in range(k+1):
+        w_index = i
+        for j in range(n+1-i):
+            for alphabet, tm in transition.items():
+                if final[current_state] != 1 and alphabet == w[w_index]:
+                    next_state = current_state + 1
+                    tm[current_state, next_state] = 1.0
+                elif final[current_state] == 1:  # final state goes to sink state
+                    next_state = nbS-1
+                    tm[current_state, next_state] = 1.0
+                else:
+                    next_state = current_state + (n + 1 - i)
+                    if next_state < nbS:  # check if the state index grows over the limit
+                        tm[current_state, next_state] = 1.0
+                    else:
+                        next_state = nbS-1
+                        tm[current_state, next_state] = 1.0
+                tm[nbS-1,nbS-1] = 1.0  # sink state
+            w_index += 1
+            current_state += 1
+
+    return DFA(nbS, len(sigma), 0, initial, transition, final)
+
+
+if __name__ == "__main__":
+    # Test DFA Constructor
+    dfa = DFA_constructor('aaaa', 4, ['a', 'b'])
+    print(dfa.verify_acceptance('bbb'))
 

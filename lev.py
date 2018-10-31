@@ -1,7 +1,7 @@
 from common_header import *
 from DFA import DFA 
-import PFA
-import PFA_utils
+#import PFA
+#import PFA_utils
 
 class LevenshteinAutomaton(DFA):
     def __init__(self, string, max_edits):

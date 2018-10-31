@@ -5,7 +5,6 @@ from RA import RA
 from DFA import DFA
 from DS import Node, Queue
 
-import PFA_utils
 import lev
 
 
