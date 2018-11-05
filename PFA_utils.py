@@ -219,6 +219,10 @@ def normalizer(at):
 
 
 def DFA_constructor(w, k, sigma):
+    """
+    Hamming Automata Construction
+    """
+
     n = len(w)  # the length of input string w
 
     # Find the number of states from w, k
