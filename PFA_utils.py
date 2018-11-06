@@ -92,6 +92,47 @@ def generator(fname):
             f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
         f.close()
 
+def DPFA_generator(nbS, nbL):
+    is_DPFA = False
+
+    while not is_DPFA:
+        sigma = [str(chr(ord('a')+i)) for i in range(nbL)]
+
+        initial = np.zeros(nbS, dtype=np.float64)
+        initial[0] = 1.0
+
+        final = np.zeros(nbS, dtype=np.float64)
+
+        transitions = {}
+        for alpha in sigma:
+            transitions[alpha] = np.zeros((nbS,nbS), dtype=np.float64)
+        
+        
+        for i in range(nbS):
+            T = random.randint(0, len(sigma))  # number of outgoint transitions
+            
+            # Select T alphabets from sigma
+            sigma_T = sigma[:]  # deep copy
+            for _ in range(len(sigma) - T):  # Remove nbL - T alphabets from sigma_T
+                sigma_T.remove(random.choice(sigma_T))
+            assert len(sigma_T) == T, 'wrong num of transitions'
+
+            # The sum of outgoing transitions probabilities + final probability equal to 1
+            probs = sum_to_one(T+1)
+
+            final[i] = probs[0]
+
+            for j, alpha in enumerate(sigma_T):
+                transitions[alpha][i][random.randint(0, nbS-1)] = probs[j+1]
+
+        at = PFA.PFA(nbL, nbS, initial, final, transitions) 
+
+        if verifier(at=at, isFile=False):
+            is_DPFA = True
+
+    return at
+
+"""
 def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
     alphabets = 'abcdefghijklmnopqrstuvwxyz'
     alphabets = [str(alpha) for alpha in alphabets]
@@ -127,6 +168,7 @@ def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
         for tp in transitions:
             f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
     f.close()
+"""
 
 
 # Verify the generated PFA input files
@@ -136,7 +178,8 @@ def verifier(fname=None, at=None, isFile=True):
     if at.probability_cond()[0] and at.terminating_cond()[0] and False not in at.get_reachable_state_flag():
         return True
     else:
-        os.remove(fname)
+        if isFile:
+            os.remove(fname)
         return False
 
 def pfa2input(pfa, file_name):

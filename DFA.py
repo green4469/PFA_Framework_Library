@@ -1,6 +1,9 @@
 from common_header import *
 
 class DFA:
+    """
+    DFA class definition
+    """
     def __init__(self, nbL = 0, nbS = 0, initial_state = 0, states = [], transitions = {}, final_states = []):
         self.nbL = nbL
         self.nbS = nbS
