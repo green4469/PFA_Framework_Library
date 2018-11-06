@@ -1,6 +1,7 @@
 from common_header import *
 import lev
 
+import PFA
 import PFA_utils
 import argparse
 import random
@@ -17,6 +18,9 @@ import random
 
 def str2list(s):
     return [int(k) for k in s.split(',')]
+
+
+    
 
 def main(args):
     algorithm = args.algorithm.lower()
