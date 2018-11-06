@@ -1,9 +1,12 @@
 from common_header import *
 import lev
 
+import PFA
 import PFA_utils
 import argparse
 import random
+import numpy as np
+import time
 
 
 # Read input file
@@ -26,18 +29,38 @@ def main(args):
     nbL_range = args.nbL_range
     iters = args.iters
     result_path = args.result_path
+    with open(result_path, 'w+') as f:
+        f.write('algorithm,k,n,nbS,nbL,RT\n')
     for i in range(iters):
         k = random.randrange(*k_range)
         n = random.randrange(*n_range)
         nbS = random.randrange(*nbS_range)
         nbL = random.randrange(*nbL_range)
-        """
-        TO DO:
-            1. generate string w given n
-            2. generate dpfa A given nbS and nbL
-            3. run the given algorithm
-            4. save the result with type_of_algorithm, k, n, nbS, nbL, nbT, and running time to the result path
-        """
+        # 1. generate a DPFA and string w \in \Sigma s.t. |w| = n
+        dpfa = PFA_utils.DPFA_generator(nbS, nbL)
+        sigma = [str(chr(ord('a')+i)) for i in range(nbL)]
+        w = ''.join(np.random.choice(sigma, n))
+        # 2. run MPS
+        start_time = time.time()
+        if 'intersect' in algorithm.lower():
+            dfa = PFA_utils.DFA_constructor(w, k, sigma)
+            sub_dpfa = dpfa.intersect_with_DFA(dfa)
+            sub_dpfa = PFA.PFA(sub_dpfa.nbL, sub_dpfa.nbS, sub_dpfa.initial, sub_dpfa.final, sub_dpfa.transitions)
+            dpfa = PFA_utils.normalizer(sub_dpfa)
+            w_star = dpfa.MPS_sampling()
+        elif 'dp' in algorithm.lower():
+            w_star = dpfa.k_MPS(w, k)
+        elif 'bf' in algorithm.lower():
+            w_star = dpfa.k_MPS_bf(w, k)
+        else:
+            raise NotImplementedError
+        end_time = time.time()
+        RT = end_time - start_time
+        # 3. record RT
+        with open(result_path, 'a') as f:
+            f.write('{},{},{},{},{},{:.5f}\n'.format(
+                    algorithm, k, n, nbS, nbL, RT))
+
 
 
 if __name__ == "__main__":
