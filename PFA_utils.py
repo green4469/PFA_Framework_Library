@@ -19,15 +19,15 @@ def float_catcher(number):
 def parser(fname):
     with open(fname, 'r') as f:
         # Read the first line and make the string into list. Then automatically pack and unpack it to 3 identifiers, nbS, nbL, nbT
-        nbS, nbL, nbT = map(int, f.readline().split(' '))  # nbs for the # of states, nbL for the # of alphabets, nbT for the # of transitions. 
+        nbS, nbL, nbT = map(int, f.readline().split(' '))  # nbs for the # of states, nbL for the # of alphabets, nbT for the # of transitions.
         initial = []
         final = []
         transitions = {}
-        
+
         # For each state, read initial & final probabilities
         for _ in range(nbS):
             i, _f = map(float_catcher, f.readline()[:-1].split(' '))  # Read a line except newline character, '\n'
-            
+
             initial.append(i)
             final.append(_f)
 
@@ -41,9 +41,9 @@ def parser(fname):
             try:
                 transitions[c][i,_f] = w
             except:
-                transitions[c] = np.zeros((nbS,nbS), dtype=np.float64) 
-                transitions[c][i,_f] = w 
-    
+                transitions[c] = np.zeros((nbS,nbS), dtype=np.float64)
+                transitions[c][i,_f] = w
+
         initial = np.asarray(initial, dtype=np.float64)
         final = np.asarray(final, dtype=np.float64)
 
@@ -106,11 +106,11 @@ def DPFA_generator(nbS, nbL):
         transitions = {}
         for alpha in sigma:
             transitions[alpha] = np.zeros((nbS,nbS), dtype=np.float64)
-        
-        
+
+
         for i in range(nbS):
             T = random.randint(0, len(sigma))  # number of outgoint transitions
-            
+
             # Select T alphabets from sigma
             sigma_T = sigma[:]  # deep copy
             for _ in range(len(sigma) - T):  # Remove nbL - T alphabets from sigma_T
@@ -191,7 +191,7 @@ def pfa2input(pfa, file_name):
     f = open(file_name, "w")
 
     f.write("{} {} {}\n".format(num_states, alphabet_size, num_transitions))
-    for i in range(num_states): 
+    for i in range(num_states):
         f.write("{} {}\n".format(pfa.initial[i], pfa.final[i]))
     for key in pfa.transitions.keys():
         for i in range(num_states):
@@ -210,7 +210,7 @@ def from_initial_to_state_string(at, target_state):
 
     q = Queue()
     q.enqueue(root)
-    
+
     while not q.is_empty():
         current_node = q.dequeue()
         current_state = current_node.data[0]
@@ -218,11 +218,11 @@ def from_initial_to_state_string(at, target_state):
 
         if current_state == target_state:
             return current_string
-        
+
         # Find the successive nodes of the current node from the given automaton
         for a, tm in at.transitions.items():
             # Each alphabet has one next state. (Since its sub-DPFA)
-            # Find that state 
+            # Find that state
             next_state = np.argmax(tm[current_state])
 
             new_node = Node()
@@ -240,7 +240,7 @@ def normalizer(at):
     new_final = np.zeros(at.nbS, dtype=np.float64)
     new_transitions = {}
     for alpha in at.alphabets:
-        new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64) 
+        new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64)
 
     ##
     for current_state in range(at.nbS):
@@ -271,14 +271,14 @@ def DFA_constructor(w, k, sigma):
     nbS = 0
     for i in range(k+1):
         nbS += n+1-i
-    nbS += 1  # Consider the sink state 
+    nbS += 1  # Consider the sink state
 
     # Decaler empty initial, transition, final probabilities
-    initial = np.zeros(nbS, dtype=np.float64) 
+    initial = np.zeros(nbS, dtype=np.float64)
     final = np.zeros(nbS, dtype=np.float64)
     transition = {}
-    for alphabet in sigma: 
-        transition[alphabet] = np.zeros((nbS,nbS), dtype=np.float64) 
+    for alphabet in sigma:
+        transition[alphabet] = np.zeros((nbS,nbS), dtype=np.float64)
     # Define the final states
     final_index = n
     for i in range(k+1):

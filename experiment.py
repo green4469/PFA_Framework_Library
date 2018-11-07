@@ -17,7 +17,7 @@ def str2list(s):
     return [int(k) for k in s.split(',')]
 
 
-    
+
 
 def main(args):
     algorithm = args.algorithm.lower()
@@ -27,6 +27,9 @@ def main(args):
     nbL_range = args.nbL_range
     iters = args.iters
     result_path = args.result_path
+    if os.path.exists(result_path):
+        print(result_path,'exists')
+        sys.exit()
     with open(result_path, 'w+') as f:
         f.write('algorithm,k,n,nbS,nbL,RT\n')
     for i in range(iters):
@@ -87,6 +90,7 @@ if __name__ == "__main__":
 
 
 """
+###for previous experiment###
 
 DPFA_input_files = os.listdir(sys.argv[1])
 k_min_max = str2list(sys.argv[4])

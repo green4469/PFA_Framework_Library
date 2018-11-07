@@ -3,4 +3,5 @@ __pycache__/
 yumin_dev.txt
 *.py[cod]
 *.swp
-result_*.csv
+*.csv
+*.txt
