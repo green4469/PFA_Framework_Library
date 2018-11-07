@@ -1,3 +1,5 @@
+""" This module defines Levinshtein Automata class """
+
 from common_header import *
 import DFA 
 import PFA
@@ -94,6 +96,7 @@ class LevenshteinAutomaton(DFA.DFA):
             self.transitions.pop('',None)
 
 if __name__ == "__main__":
+    """ Levinshtein Automata class unit-test code """
     at = PFA_utils.parser("./inputs/pfa/input0.txt")
     print('parsing done')
     start_time = time.time()

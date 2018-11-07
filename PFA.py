@@ -1,15 +1,18 @@
+""" This module defines PFA (Probabilistic Finite-state Automata) class """
+
 from common_header import *
 
 import RA
-
 import DFA
 from DS import Node, Queue
-
+import heapq
 import lev
 
 
 class PFA(RA.RA):
+    """ PFA class definition """
     def __init__(self, nbL, nbS, initial, final, transitions):
+        """ Constructor of PFA """
         super(PFA, self).__init__(nbL, nbS, initial, final, transitions)
 
         # Precalculate for the reason of complexity.
@@ -27,17 +30,17 @@ class PFA(RA.RA):
         self.var = self.initial @ self.Msigma @ (self.I + self.Msigma) @ (self.inv_I_M ** 3) @ self.final \
                     - ( self.initial @ self.Msigma @ (self.inv_I_M ** 2) @ self.final ) ** 2  # variance of distribution
 
-    # Hak-Su
-    """
-    Viterbi algorithm in "Representing Distributions over Strings with
-                          Automata and Grammars", Page 107
-
-    Input           a string w
-    Output          the highest probability of w along with one path,
-                    the sequence of the states(from initial states to final states) of the path.
-    Description     Viterbi algorithm Implementation
-    """
     def viterbi(self, string):
+        """
+        # Hak-Su
+        Viterbi algorithm in "Representing Distributions over Strings with
+                              Automata and Grammars", Page 107
+
+        Input           a string w
+        Output          the highest probability of w along with one path,
+                        the sequence of the states(from initial states to final states) of the path.
+        Description     Viterbi algorithm Implementation
+        """
         #Algorithm 5.6: VITERBI
         n = len(string)
         V = np.zeros((n+1,self.nbS),np.float64)
@@ -132,13 +135,12 @@ class PFA(RA.RA):
         return generated
 
 
-    # Yu-Min
     def prefix_prob(self, w):
         """
         Input           a PFA, a string w
         Output          the probability of w appearing as a prefix
         Author          Yu-Min Kim
-        Description     Simple Implementation
+        Description     Simple Implementation of prefix_probability (Don't use this in normalizing step)
         """
 
         result = self.initial
@@ -153,7 +155,7 @@ class PFA(RA.RA):
         Input           a PFA, a string w
         Output          the probability of w appearing as a prefix
         Author          Yu-Min Kim
-        Description     More Complex Implementation
+        Description     Standard Implementation of prefix_probability
         """
 
         M_w = np.eye(self.nbS)
@@ -251,20 +253,21 @@ class PFA(RA.RA):
                 return min(self.prefix_prob(w), (self.nbS+1)**2/len(w))
             except:
                 return self.prefix_prob(w)
+        
         # Initially, the result string is empty string (lambda)
         w = ''
 
         current_prob = 0
         current_best = ''
 
-        # Instantiate a Queue
-        Q = Queue()
-        Q.enqueue(Node(w))
+        # Instantiate a Priority Queue
+        PQ = []
+        heapq.heappush(PQ, (PP(w), w))
 
         Continue = True
 
         while not Q.is_empty() and Continue:
-            w = (Q.dequeue()).data
+            w, ppw = heapq.heappop(PQ)
             if w == 'b':
                 print("b detected")
                 exit()
@@ -273,7 +276,7 @@ class PFA(RA.RA):
                 PP(z) > PP(b)
                 """
 
-            if PP(w) > current_prob:
+            if ppw > current_prob:
                 p = self.parse(w)
 
                 if p > current_prob:
@@ -281,8 +284,10 @@ class PFA(RA.RA):
                     current_best = w
 
                 for char in self.alphabets:
-                    if PP(w+char) > current_prob:
-                        Q.enqueue(Node(w+char))
+                    ppwc = PP(w+char)
+                    if ppwc > current_prob:
+                        heapq.heappush(PQ, (ppwc, w+char))
+
             else:
                 Continue = False
                 print("continue false set")

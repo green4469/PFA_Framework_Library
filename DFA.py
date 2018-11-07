@@ -1,10 +1,15 @@
+"""
+This module define DFA class. DFA stands for Deterministic Finite-state Automata.
+"""
+
 from common_header import *
 
 class DFA:
     """
-    DFA class definition
+    DFA(Deterministic Finite-state Automata) class definition
     """
     def __init__(self, nbL = 0, nbS = 0, initial_state = 0, states = [], transitions = {}, final_states = []):
+        """ Constructor of DFA class """
         self.nbL = nbL
         self.nbS = nbS
         self.states = states
@@ -31,6 +36,7 @@ class DFA:
         self.transitions = transitions
         """
     def verify_acceptance(self, string):
+        """ This method verifies that acceptance of DFA works with an input string. """
         current_state = self.initial_state
         for alphabet in string:
             if alphabet not in self.alphabets:
@@ -42,11 +48,13 @@ class DFA:
             return False
 
     def print(self):
+        """ This method prints the initial, final probabilities and transition function """
         print('I', self.states)
         print('F', self.final_states)
         print('T', self.transitions)
     
 if __name__ == "__main__":
+    """ DFA class unit-test code """
     nbL = 2
     nbS = 5
     initial_state = 0

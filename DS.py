@@ -1,17 +1,15 @@
+""" This module defines basic data structures classes """
+
 from common_header import *
 
 class Node(object):
+    """ Basic unit class that can be used in stack or queue """
     def __init__(self, data=None):
         self.data = data
         self.next = None
 
 class Queue(object):
-    """
-    class Node(object):
-        def __init__(self, data=None):
-            self.data = data
-            self.next = None
-    """
+    """ FIFO Queue """
 
     def __init__(self):
         self.head = None

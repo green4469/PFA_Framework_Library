@@ -1,3 +1,5 @@
+"""This module import common modules used by other modules in this project"""
+
 import numpy as np
 from numpy.linalg import inv
 import math
