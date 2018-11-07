@@ -316,7 +316,7 @@ class PFA(RA):
                     MPS_candidate[pos_tuple[i]] = alpha_tuple[i]
 
                 prob = self.parse(''.join(MPS_candidate))
-                
+
                 if prob > most_prob:
                     most_prob = prob
                     MPS = MPS_candidate[:]
@@ -341,7 +341,7 @@ class PFA(RA):
         initial = self.initial
         prefix_list.append(initial)
 
-        for char in x_list: 
+        for char in x_list:
             initial = initial @ self.transitions[char]
             prefix_list.append(initial)
 
@@ -349,21 +349,21 @@ class PFA(RA):
         # O(n^3)
         infix_dict = {}
         n = len(x)
-        for i in range(n): 
+        for i in range(n):
             for j in range(i+1, n):
                 infix_prob = self.I  # Start with identity matrix
                 for idx in range(i+1, j):
                     infix_prob = infix_prob @ self.transitions[x_list[idx]]
                 infix_dict[(i,j)] = infix_prob  # Later, reference like infix_list[(i, j)]
-                
 
-        # Suffix probabilities  
+
+        # Suffix probabilities
         # O(Sigma)
         suffix_list = []
         final = self.final
         suffix_list.append(final)
         x_list.reverse()  # Start from the end
-        for char in x_list:  
+        for char in x_list:
             final = self.transitions[char] @ final
             suffix_list.append(final)
         suffix_list.pop()
@@ -447,7 +447,10 @@ class PFA(RA):
                     transitions[c][state_mapping[q],state_mapping[q_]] = P.transitions[c][q[0], q_[0]]
                 else:
                     transitions[c][state_mapping[q],state_mapping[q_]] = 0
-        return RA(nbL, nbS, initial, final, transitions) # sub-PFA    
+        pfa = PFA(nbL, nbS, initial, final, transitions) # sub-PFA
+        pfa = remove_unreachable_states(pfa)
+        pfa = remove_non_terminating_states(pfa)
+        return pfa
 
     """
     "Remove Probability"
@@ -464,7 +467,7 @@ class PFA(RA):
         print(new_transitions)
         states = [i for i in range(self.nbS)]
         initial_state = np.where(self.initial == 1.0)
-        dfa = DFA(nbL = self.nbL, nbS = self.nbS, initial_state = initial_state, 
+        dfa = DFA(nbL = self.nbL, nbS = self.nbS, initial_state = initial_state,
                     states = states, transitions = new_transitions)
         return dfa
 
@@ -476,6 +479,38 @@ class PFA(RA):
         for string in string_list:
             f.write("{}\n".format(string))
         f.close()
-        
+
+def remove_states_by_flag(pfa, flag):
+    # remove all states whose flag value is False
+    idx_array = np.array([i for i in range(len(flag)) if flag[i] == True])
+    nbL = pfa.nbL
+    nbS = len(idx_array)
+    initial = pfa.initial[idx_array]
+    final = pfa.final[idx_array]
+    transitions = dict()
+    for alphabet, transition in pfa.transitions.items():
+        transitions[alphabet] = transition[idx_array][:, idx_array]
+    return PFA(nbL, nbS, initial, final, transitions)
+
+def remove_unreachable_states(pfa):
+    reachable_flag = pfa.get_reachable_state_flag()
+    return remove_states_by_flag(pfa, reachable_flag)
+
+def remove_non_terminating_states(pfa):
+    # assume that there is no unreachable states
+    terminating_flag = pfa.final.astype(np.bool)
+    while True:
+        prev_flag = copy.deepcopy(terminating_flag)
+        terminating_states = np.nonzero(terminating_flag)
+        for transition in pfa.transitions.values():
+            terminating_flag += np.sum(transition[:,terminating_states[0]].astype(np.bool), axis=1).astype(np.bool)
+        if not np.sum(np.logical_xor(prev_flag, terminating_flag)):
+            break
+        else:
+            del prev_flag
+            continue
+    return remove_states_by_flag(pfa, terminating_flag)
+
+
 if __name__ == "__main__":
     pass
