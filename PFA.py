@@ -266,8 +266,8 @@ class PFA(RA.RA):
 
         Continue = True
 
-        while not Q.is_empty() and Continue:
-            w, ppw = heapq.heappop(PQ)
+        while len(PQ) != 0 and Continue:
+            ppw, w = heapq.heappop(PQ)
             if w == 'b':
                 print("b detected")
                 exit()
