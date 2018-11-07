@@ -125,7 +125,7 @@ def DPFA_generator(nbS, nbL):
             for j, alpha in enumerate(sigma_T):
                 transitions[alpha][i][random.randint(0, nbS-1)] = probs[j+1]
 
-        at = PFA.PFA(nbL, nbS, initial, final, transitions) 
+        at = PFA(nbL, nbS, initial, final, transitions) 
 
         if verifier(at=at, isFile=False):
             is_DPFA = True
@@ -265,7 +265,7 @@ def DFA_constructor(w, k, sigma):
     """
     Hamming Automata Construction
     """
-
+    import ipdb; ipdb.set_trace()
     n = len(w)  # the length of input string w
 
     # Find the number of states from w, k
@@ -278,7 +278,8 @@ def DFA_constructor(w, k, sigma):
     initial = np.zeros(nbS, dtype=np.float64) 
     final = np.zeros(nbS, dtype=np.float64)
     transition = {}
-    for alphabet in sigma: transition[alphabet] = np.zeros((nbS,nbS), dtype=np.float64) 
+    for alphabet in sigma: 
+        transition[alphabet] = np.zeros((nbS,nbS), dtype=np.float64) 
     # Define the final states
     final_index = n
     for i in range(k+1):
@@ -318,6 +319,7 @@ def DFA_constructor(w, k, sigma):
 
 if __name__ == "__main__":
     # Test DFA Constructor
-    dfa = DFA_constructor('aaaa', 4, ['a', 'b'])
-    print(dfa.verify_acceptance('bbb'))
+    dfa = DFA_constructor('aaaaaa', 1, ['a', 'b'])
+    dfa.print()
+    print(dfa.verify_acceptance('aaaaab'))
 

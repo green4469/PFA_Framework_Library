@@ -10,7 +10,6 @@ import time
 
 
 # Read input file
-
 # Parse input file into DPFA instance
 
 # sys.argv[1] : DPFA input directory name
@@ -43,13 +42,21 @@ def main(args):
         dpfa = PFA_utils.DPFA_generator(nbS, nbL)
         sigma = [str(chr(ord('a')+i)) for i in range(nbL)]
         w = ''.join(np.random.choice(sigma, n))
+        print("[{}] k: {}, n: {}, nbS: {}, nbL: {}".format(algorithm, k, n, nbS, nbL))
+        print('given string',w)
         # 2. run MPS
         start_time = time.time()
         if 'intersect' in algorithm.lower():
+            print('hamming automaton...')
             dfa = PFA_utils.DFA_constructor(w, k, sigma)
+            print('nbS of the hamming automaton: {}'.format(dfa.nbS))
+            print('intersecting...')
             sub_dpfa = dpfa.intersect_with_DFA(dfa)
             sub_dpfa = PFA.PFA(sub_dpfa.nbL, sub_dpfa.nbS, sub_dpfa.initial, sub_dpfa.final, sub_dpfa.transitions)
+            print('nbS of intersected DPFA: {}'.format(sub_dpfa.nbS))
+            print('normalizing...')
             dpfa = PFA_utils.normalizer(sub_dpfa)
+            print('MPS...')
             w_star = dpfa.MPS_sampling()
         elif 'dp' in algorithm.lower():
             w_star = dpfa.k_MPS(w, k)
@@ -57,8 +64,10 @@ def main(args):
             w_star = dpfa.k_MPS_bf(w, k)
         else:
             raise NotImplementedError
+        print('done!')
         end_time = time.time()
         RT = end_time - start_time
+        print('time elapsed: {:.4f}s'.format(RT))
         # 3. record RT
         with open(result_path, 'a') as f:
             f.write('{},{},{},{},{},{:.5f}\n'.format(
