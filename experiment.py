@@ -3,10 +3,6 @@ import lev
 
 import PFA
 import PFA_utils
-import argparse
-import random
-import numpy as np
-import time
 
 
 # Read input file

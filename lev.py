@@ -1,9 +1,9 @@
 from common_header import *
-from DFA import DFA 
-#import PFA
-#import PFA_utils
+import DFA 
+import PFA
+import PFA_utils
 
-class LevenshteinAutomaton(DFA):
+class LevenshteinAutomaton(DFA.DFA):
     def __init__(self, string, max_edits):
         super(LevenshteinAutomaton, self).__init__(nbL = 0, nbS = 0, initial_state = 0, states = [],
                                                    transitions = {}, final_states = [])

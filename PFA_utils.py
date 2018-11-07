@@ -1,7 +1,7 @@
 from common_header import *
 
-from DFA import DFA
-from PFA import PFA
+import DFA
+import PFA
 
 from DS import Queue, Node
 
@@ -48,7 +48,7 @@ def parser(fname):
         final = np.asarray(final, dtype=np.float64)
 
 
-        at = PFA(nbL = nbL, nbS= nbS, initial = initial, final = final, transitions = transitions)
+        at = PFA.PFA(nbL = nbL, nbS= nbS, initial = initial, final = final, transitions = transitions)
         return at
 
 # Generate a random distribution
@@ -125,7 +125,7 @@ def DPFA_generator(nbS, nbL):
             for j, alpha in enumerate(sigma_T):
                 transitions[alpha][i][random.randint(0, nbS-1)] = probs[j+1]
 
-        at = PFA(nbL, nbS, initial, final, transitions) 
+        at = PFA.PFA(nbL, nbS, initial, final, transitions) 
 
         if verifier(at=at, isFile=False):
             is_DPFA = True
@@ -265,7 +265,6 @@ def DFA_constructor(w, k, sigma):
     """
     Hamming Automata Construction
     """
-    import ipdb; ipdb.set_trace()
     n = len(w)  # the length of input string w
 
     # Find the number of states from w, k
@@ -314,7 +313,7 @@ def DFA_constructor(w, k, sigma):
             w_index += 1
             current_state += 1
 
-    return DFA(nbS, len(sigma), 0, initial, transition, final)
+    return DFA.DFA(nbS, len(sigma), 0, initial, transition, final)
 
 
 if __name__ == "__main__":

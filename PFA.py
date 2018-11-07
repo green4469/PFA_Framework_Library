@@ -1,14 +1,14 @@
 from common_header import *
 
-from RA import RA
+import RA
 
-from DFA import DFA
+import DFA
 from DS import Node, Queue
 
 import lev
 
 
-class PFA(RA):
+class PFA(RA.RA):
     def __init__(self, nbL, nbS, initial, final, transitions):
         super(PFA, self).__init__(nbL, nbS, initial, final, transitions)
 
@@ -447,7 +447,7 @@ class PFA(RA):
                     transitions[c][state_mapping[q],state_mapping[q_]] = P.transitions[c][q[0], q_[0]]
                 else:
                     transitions[c][state_mapping[q],state_mapping[q_]] = 0
-        return RA(nbL, nbS, initial, final, transitions) # sub-PFA    
+        return RA.RA(nbL, nbS, initial, final, transitions) # sub-PFA    
 
     """
     "Remove Probability"
@@ -464,7 +464,7 @@ class PFA(RA):
         print(new_transitions)
         states = [i for i in range(self.nbS)]
         initial_state = np.where(self.initial == 1.0)
-        dfa = DFA(nbL = self.nbL, nbS = self.nbS, initial_state = initial_state, 
+        dfa = DFA.DFA(nbL = self.nbL, nbS = self.nbS, initial_state = initial_state, 
                     states = states, transitions = new_transitions)
         return dfa
 
