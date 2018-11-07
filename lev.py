@@ -1,5 +1,5 @@
 from common_header import *
-from DFA import DFA 
+from DFA import DFA
 #import PFA
 #import PFA_utils
 
@@ -48,7 +48,7 @@ class LevenshteinAutomaton(DFA):
         Return OUT transitions(alphabets) of the state
         """
         return set(c for (i,c) in enumerate(self.string) if state[i] <= self.max_edits)
-    
+
     def explore(self, state):
         """
         IN: state(levenshtein distance list of row i;ith character of the string)
@@ -71,7 +71,7 @@ class LevenshteinAutomaton(DFA):
         return i
 
     def transitions_matrix(self):
-        #These transition matrices may be sparse matrices 
+        #These transition matrices may be sparse matrices
         nbS = self.nbS
         old_transitions = self.transitions
         self.transitions = {}

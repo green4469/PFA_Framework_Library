@@ -1,4 +1,11 @@
 from common_header import *
+import numpy as np
+from numpy.linalg import inv
+
+import math
+import copy
+
+import editdistance
 
 from RA import RA
 
@@ -398,6 +405,7 @@ class PFA(RA):
         # O(nCk * Sigma^k * k)
         most_prob = 0
         MPS = []
+<<<<<<< HEAD
         for pos_tuple in pos_comb:
             for alpha_tuple in alpha_comb:
                 MPS_candidate = x_list[:]
@@ -514,3 +522,11 @@ def remove_non_terminating_states(pfa):
 
 if __name__ == "__main__":
     pass
+        for i in range(len(x_list)):
+            for char in self.alphabet:
+                if prefix_list[i] @ self.transitions[char] @ suffix_list[len(x_list)-1-i] > prob:
+                    prob = prefix_list[i] @ self.transitions[char] @ suffix_list[len(x_list)-1-i]
+                    MPS = x_list
+                    MPS[i] = char
+
+        return ''.join(MPS)

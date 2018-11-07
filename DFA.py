@@ -22,7 +22,7 @@ class DFA:
                     None
                     #raise InvalidDFA
                 next_state = np.where(transitions[alphabet][current_state] == 1)[0][0]
-                self.transitions[(current_state,alphabet)] = next_state 
+                self.transitions[(current_state,alphabet)] = next_state
 
         """
         transitions input : {(current_state, alphabet), next_state}
@@ -45,7 +45,7 @@ class DFA:
         print('I', self.states)
         print('F', self.final_states)
         print('T', self.transitions)
-    
+
 if __name__ == "__main__":
     nbL = 2
     nbS = 5
