@@ -268,13 +268,6 @@ class PFA(RA.RA):
 
         while len(PQ) != 0 and Continue:
             ppw, w = heapq.heappop(PQ)
-            if w == 'b':
-                print("b detected")
-                exit()
-                """
-                z is before b
-                PP(z) > PP(b)
-                """
 
             if ppw > current_prob:
                 p = self.parse(w)
@@ -290,10 +283,6 @@ class PFA(RA.RA):
 
             else:
                 Continue = False
-                print("continue false set")
-                print("current_prob: {}".format(current_prob))
-                print("PP(b): {}".format(PP('b')))
-                print("PP(z): {}".format(PP('z')))
 
         return current_best
 
