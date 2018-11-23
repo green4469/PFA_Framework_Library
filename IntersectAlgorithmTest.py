@@ -54,11 +54,19 @@ transitions['a'] = np.array([[0.1, 0.0], [0.0, 0.2]])
 transitions['b'] = np.array([[0.0,0.3],[0.4,0.0]])
 
 at = PFA.PFA(2, 2, initial, final, transitions)
+
+print("total value before normalization:", at.initial@np.linalg.inv(np.eye(at.nbS)-(at.transitions['a']+at.transitions['b']))@at.final)
+
 z=at.initial@np.linalg.inv(np.eye(at.nbS)-(at.transitions['a']+at.transitions['b']))@at.final
-print("total value:", z)
-print(PFA_utils.verifier(at=at, isFile=False))
+
+aaa = at.parse("aaa")
+
 at2 = PFA_utils.normalizer(at)
-print(PFA_utils.verifier(at=at, isFile=False))
-print("total value after normalization:", at2.initial@np.linalg.inv(np.eye(at2.nbS)-(at2.transitions['a']+at2.transitions['b']))@at2.final)
-print(at.parse("aaa")/z, at2.parse("aaa"))
 at2.print()
+
+
+print("total value after normalization:", at2.initial@np.linalg.inv(np.eye(at2.nbS)-(at2.transitions['a']+at2.transitions['b']))@at2.final)
+
+print(aaa/z, at2.parse("aaa"))
+
+
