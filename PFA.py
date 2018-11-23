@@ -1,13 +1,18 @@
+""" This module defines PFA (Probabilistic Finite-state Automata) class """
+
 from common_header import *
 
-from RA import RA
-
-from DFA import DFA
+import RA
+import DFA
 from DS import Node, Queue
+import heapq
+import lev
 
 
-class PFA(RA):
+class PFA(RA.RA):
+    """ PFA class definition """
     def __init__(self, nbL, nbS, initial, final, transitions):
+        """ Constructor of PFA """
         super(PFA, self).__init__(nbL, nbS, initial, final, transitions)
 
         # Precalculate for the reason of complexity.
@@ -25,17 +30,17 @@ class PFA(RA):
         self.var = self.initial @ self.Msigma @ (self.I + self.Msigma) @ (self.inv_I_M ** 3) @ self.final \
                     - ( self.initial @ self.Msigma @ (self.inv_I_M ** 2) @ self.final ) ** 2  # variance of distribution
 
-    # Hak-Su
-    """
-    Viterbi algorithm in "Representing Distributions over Strings with
-                          Automata and Grammars", Page 107
-
-    Input           a string w
-    Output          the highest probability of w along with one path,
-                    the sequence of the states(from initial states to final states) of the path.
-    Description     Viterbi algorithm Implementation
-    """
     def viterbi(self, string):
+        """
+        # Hak-Su
+        Viterbi algorithm in "Representing Distributions over Strings with
+                              Automata and Grammars", Page 107
+
+        Input           a string w
+        Output          the highest probability of w along with one path,
+                        the sequence of the states(from initial states to final states) of the path.
+        Description     Viterbi algorithm Implementation
+        """
         #Algorithm 5.6: VITERBI
         n = len(string)
         V = np.zeros((n+1,self.nbS),np.float64)
@@ -130,13 +135,12 @@ class PFA(RA):
         return generated
 
 
-    # Yu-Min
     def prefix_prob(self, w):
         """
         Input           a PFA, a string w
         Output          the probability of w appearing as a prefix
         Author          Yu-Min Kim
-        Description     Simple Implementation
+        Description     Simple Implementation of prefix_probability (Don't use this in normalizing step)
         """
 
         result = self.initial
@@ -151,7 +155,7 @@ class PFA(RA):
         Input           a PFA, a string w
         Output          the probability of w appearing as a prefix
         Author          Yu-Min Kim
-        Description     More Complex Implementation
+        Description     Standard Implementation of prefix_probability
         """
 
         M_w = np.eye(self.nbS)
@@ -222,7 +226,7 @@ class PFA(RA):
 
         return False
 
-    def MPS(self):
+    def MPS_sampling(self):
         epsilon = 0.0001
         low = 0.0
         high = 1.0
@@ -242,6 +246,59 @@ class PFA(RA):
             # If high-low is lower than epsilon and w is not False, then break
             if high - low < epsilon and w != False:
                 return w
+
+    def MPS(self):
+        def PP(w):
+            try:
+                return min(self.prefix_prob(w), (self.nbS+1)**2/len(w))
+            except:
+                return self.prefix_prob(w)
+        
+        # Initially, the result string is empty string (lambda)
+        w = ''
+
+        current_prob = 0
+        current_best = ''
+
+        # Instantiate a Priority Queue
+        PQ = []
+        heapq.heappush(PQ, (PP(w), w))
+
+        Continue = True
+
+        while len(PQ) != 0 and Continue:
+            ppw, w = heapq.heappop(PQ)
+            if w == 'b':
+                print("b detected")
+                exit()
+                """
+                z is before b
+                PP(z) > PP(b)
+                """
+
+            if ppw > current_prob:
+                p = self.parse(w)
+
+                if p > current_prob:
+                    current_prob = p
+                    current_best = w
+
+                for char in self.alphabets:
+                    ppwc = PP(w+char)
+                    if ppwc > current_prob:
+                        heapq.heappush(PQ, (ppwc, w+char))
+
+            else:
+                Continue = False
+                print("continue false set")
+                print("current_prob: {}".format(current_prob))
+                print("PP(b): {}".format(PP('b')))
+                print("PP(z): {}".format(PP('z')))
+
+        return current_best
+
+
+
 
     def k_MPS_bf(self, x, k):
         x_list = list(x)  # make input string x to a list
@@ -264,7 +321,7 @@ class PFA(RA):
                     MPS_candidate[pos_tuple[i]] = alpha_tuple[i]
 
                 prob = self.parse(''.join(MPS_candidate))
-                
+
                 if prob > most_prob:
                     most_prob = prob
                     MPS = MPS_candidate[:]
@@ -289,7 +346,7 @@ class PFA(RA):
         initial = self.initial
         prefix_list.append(initial)
 
-        for char in x_list: 
+        for char in x_list:
             initial = initial @ self.transitions[char]
             prefix_list.append(initial)
 
@@ -297,21 +354,21 @@ class PFA(RA):
         # O(n^3)
         infix_dict = {}
         n = len(x)
-        for i in range(n): 
+        for i in range(n):
             for j in range(i+1, n):
                 infix_prob = self.I  # Start with identity matrix
                 for idx in range(i+1, j):
                     infix_prob = infix_prob @ self.transitions[x_list[idx]]
                 infix_dict[(i,j)] = infix_prob  # Later, reference like infix_list[(i, j)]
-                
 
-        # Suffix probabilities  
+
+        # Suffix probabilities
         # O(Sigma)
         suffix_list = []
         final = self.final
         suffix_list.append(final)
         x_list.reverse()  # Start from the end
-        for char in x_list:  
+        for char in x_list:
             final = self.transitions[char] @ final
             suffix_list.append(final)
         suffix_list.pop()
@@ -395,7 +452,10 @@ class PFA(RA):
                     transitions[c][state_mapping[q],state_mapping[q_]] = P.transitions[c][q[0], q_[0]]
                 else:
                     transitions[c][state_mapping[q],state_mapping[q_]] = 0
-        return RA(nbL, nbS, initial, final, transitions) # sub-PFA    
+        pfa = PFA(nbL, nbS, initial, final, transitions) # sub-PFA
+        pfa = remove_unreachable_states(pfa)
+        pfa = remove_non_terminating_states(pfa)
+        return pfa
 
     """
     "Remove Probability"
@@ -412,8 +472,7 @@ class PFA(RA):
         print(new_transitions)
         states = [i for i in range(self.nbS)]
         initial_state = np.where(self.initial == 1.0)
-        dfa = DFA(nbL = self.nbL, nbS = self.nbS, initial_state = initial_state, 
-                    states = states, transitions = new_transitions)
+        dfa = DFA.DFA(nbL = self.nbL, nbS = self.nbS, initial_state = initial_state, states = states, transitions = new_transitions)
         return dfa
 
     def make_string_file(self, file_name, num_of_strings):
@@ -424,6 +483,38 @@ class PFA(RA):
         for string in string_list:
             f.write("{}\n".format(string))
         f.close()
-        
+
+def remove_states_by_flag(pfa, flag):
+    # remove all states whose flag value is False
+    idx_array = np.array([i for i in range(len(flag)) if flag[i] == True])
+    nbL = pfa.nbL
+    nbS = len(idx_array)
+    initial = pfa.initial[idx_array]
+    final = pfa.final[idx_array]
+    transitions = dict()
+    for alphabet, transition in pfa.transitions.items():
+        transitions[alphabet] = transition[idx_array][:, idx_array]
+    return PFA(nbL, nbS, initial, final, transitions)
+
+def remove_unreachable_states(pfa):
+    reachable_flag = pfa.get_reachable_state_flag()
+    return remove_states_by_flag(pfa, reachable_flag)
+
+def remove_non_terminating_states(pfa):
+    # assume that there is no unreachable states
+    terminating_flag = pfa.final.astype(np.bool)
+    while True:
+        prev_flag = copy.deepcopy(terminating_flag)
+        terminating_states = np.nonzero(terminating_flag)
+        for transition in pfa.transitions.values():
+            terminating_flag += np.sum(transition[:,terminating_states[0]].astype(np.bool), axis=1).astype(np.bool)
+        if not np.sum(np.logical_xor(prev_flag, terminating_flag)):
+            break
+        else:
+            del prev_flag
+            continue
+    return remove_states_by_flag(pfa, terminating_flag)
+
+
 if __name__ == "__main__":
     pass

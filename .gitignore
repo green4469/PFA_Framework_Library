@@ -1,6 +1,7 @@
 .vscode
-__pycache__
+__pycache__/
 yumin_dev.txt
-*.pyc
+*.py[cod]
 *.swp
-result_*.csv
+*.csv
+*.txt

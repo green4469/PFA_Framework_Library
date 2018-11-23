@@ -1,6 +1,10 @@
 from common_header import *
 
-from PFA import PFA
+import DFA
+import PFA
+
+from DS import Queue, Node
+
 
 
 # Receive relative numbers e.g., 3/5
@@ -15,15 +19,15 @@ def float_catcher(number):
 def parser(fname):
     with open(fname, 'r') as f:
         # Read the first line and make the string into list. Then automatically pack and unpack it to 3 identifiers, nbS, nbL, nbT
-        nbS, nbL, nbT = map(int, f.readline().split(' '))  # nbs for the # of states, nbL for the # of alphabets, nbT for the # of transitions. 
+        nbS, nbL, nbT = map(int, f.readline().split(' '))  # nbs for the # of states, nbL for the # of alphabets, nbT for the # of transitions.
         initial = []
         final = []
         transitions = {}
-        
+
         # For each state, read initial & final probabilities
         for _ in range(nbS):
             i, _f = map(float_catcher, f.readline()[:-1].split(' '))  # Read a line except newline character, '\n'
-            
+
             initial.append(i)
             final.append(_f)
 
@@ -37,14 +41,14 @@ def parser(fname):
             try:
                 transitions[c][i,_f] = w
             except:
-                transitions[c] = np.zeros((nbS,nbS), dtype=np.float64) 
-                transitions[c][i,_f] = w 
-    
+                transitions[c] = np.zeros((nbS,nbS), dtype=np.float64)
+                transitions[c][i,_f] = w
+
         initial = np.asarray(initial, dtype=np.float64)
         final = np.asarray(final, dtype=np.float64)
 
 
-        at = PFA(nbL = nbL, nbS= nbS, initial = initial, final = final, transitions = transitions)
+        at = PFA.PFA(nbL = nbL, nbS= nbS, initial = initial, final = final, transitions = transitions)
         return at
 
 # Generate a random distribution
@@ -88,6 +92,47 @@ def generator(fname):
             f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
         f.close()
 
+def DPFA_generator(nbS, nbL):
+    is_DPFA = False
+
+    while not is_DPFA:
+        sigma = [str(chr(ord('a')+i)) for i in range(nbL)]
+
+        initial = np.zeros(nbS, dtype=np.float64)
+        initial[0] = 1.0
+
+        final = np.zeros(nbS, dtype=np.float64)
+
+        transitions = {}
+        for alpha in sigma:
+            transitions[alpha] = np.zeros((nbS,nbS), dtype=np.float64)
+
+
+        for i in range(nbS):
+            T = random.randint(0, len(sigma))  # number of outgoint transitions
+
+            # Select T alphabets from sigma
+            sigma_T = sigma[:]  # deep copy
+            for _ in range(len(sigma) - T):  # Remove nbL - T alphabets from sigma_T
+                sigma_T.remove(random.choice(sigma_T))
+            assert len(sigma_T) == T, 'wrong num of transitions'
+
+            # The sum of outgoing transitions probabilities + final probability equal to 1
+            probs = sum_to_one(T+1)
+
+            final[i] = probs[0]
+
+            for j, alpha in enumerate(sigma_T):
+                transitions[alpha][i][random.randint(0, nbS-1)] = probs[j+1]
+
+        at = PFA.PFA(nbL, nbS, initial, final, transitions) 
+
+        if verifier(at=at, isFile=False):
+            is_DPFA = True
+
+    return at
+
+"""
 def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
     alphabets = 'abcdefghijklmnopqrstuvwxyz'
     alphabets = [str(alpha) for alpha in alphabets]
@@ -123,15 +168,18 @@ def DPFAgenerator(fname, num_state_min = 5, num_state_max = 5):
         for tp in transitions:
             f.write("{} {} {} {}\n".format(tp[0], tp[1], tp[2], tp[3]))
     f.close()
+"""
 
 
 # Verify the generated PFA input files
-def verifier(fname):
-    at = parser(fname)
+def verifier(fname=None, at=None, isFile=True):
+    if isFile:
+        at = parser(fname)
     if at.probability_cond()[0] and at.terminating_cond()[0] and False not in at.get_reachable_state_flag():
         return True
     else:
-        os.remove(fname)
+        if isFile:
+            os.remove(fname)
         return False
 
 def pfa2input(pfa, file_name):
@@ -143,7 +191,7 @@ def pfa2input(pfa, file_name):
     f = open(file_name, "w")
 
     f.write("{} {} {}\n".format(num_states, alphabet_size, num_transitions))
-    for i in range(num_states): 
+    for i in range(num_states):
         f.write("{} {}\n".format(pfa.initial[i], pfa.final[i]))
     for key in pfa.transitions.keys():
         for i in range(num_states):
@@ -162,7 +210,7 @@ def from_initial_to_state_string(at, target_state):
 
     q = Queue()
     q.enqueue(root)
-    
+
     while not q.is_empty():
         current_node = q.dequeue()
         current_state = current_node.data[0]
@@ -170,11 +218,11 @@ def from_initial_to_state_string(at, target_state):
 
         if current_state == target_state:
             return current_string
-        
+
         # Find the successive nodes of the current node from the given automaton
         for a, tm in at.transitions.items():
             # Each alphabet has one next state. (Since its sub-DPFA)
-            # Find that state 
+            # Find that state
             next_state = np.argmax(tm[current_state])
 
             new_node = Node()
@@ -185,25 +233,92 @@ def from_initial_to_state_string(at, target_state):
     raise Exception('There exist unreachable state')
 
 def normalizer(at):
+    new_initial = np.zeros(at.nbS, dtype=np.float64)
+    new_initial[0] = 1.0
+    at.initial = new_initial
+
     new_final = np.zeros(at.nbS, dtype=np.float64)
     new_transitions = {}
     for alpha in at.alphabets:
-        new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64) 
+        new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64)
 
+    ##
     for current_state in range(at.nbS):
         w = from_initial_to_state_string(at, current_state)
-        print("#######")
-        print(w)
-        print(at.parse(w))
-        print(at.prefix_prob(w))
-        print("#######")
-        new_final[current_state] = at.parse(w) / at.prefix_prob(w)
+        new_final[current_state] = at.parse(w) / at.prefix_prob2(w)
 
         for a, tm in at.transitions.items():
             next_state = np.argmax(tm[current_state])
-            new_transitions[a][current_state, next_state] = at.prefix_prob(w+a) / at.prefix_prob(w)
+
+            if tm[current_state][next_state] == 0.0:  # What if there's no next state for this alphabet?
+                continue
+
+            new_transitions[a][current_state, next_state] = at.prefix_prob2(w+a) / at.prefix_prob2(w)
+    ##
 
     at.final = new_final
     at.transitions = new_transitions
     return at
+
+
+def DFA_constructor(w, k, sigma):
+    """
+    Hamming Automata Construction
+    """
+    n = len(w)  # the length of input string w
+
+    # Find the number of states from w, k
+    nbS = 0
+    for i in range(k+1):
+        nbS += n+1-i
+    nbS += 1  # Consider the sink state
+
+    # Decaler empty initial, transition, final probabilities
+    initial = np.zeros(nbS, dtype=np.float64)
+    final = np.zeros(nbS, dtype=np.float64)
+    transition = {}
+    for alphabet in sigma:
+        transition[alphabet] = np.zeros((nbS,nbS), dtype=np.float64)
+    # Define the final states
+    final_index = n
+    for i in range(k+1):
+        final[final_index] = 1.0
+        final_index += n-i
+
+    # Define the initial state
+    initial[0] = 1.0
+
+    # Define the transition matrices
+    current_state = 0
+    w_index = 0
+
+    for i in range(k+1):
+        w_index = i
+        for j in range(n+1-i):
+            for alphabet, tm in transition.items():
+                if final[current_state] != 1 and alphabet == w[w_index]:
+                    next_state = current_state + 1
+                    tm[current_state, next_state] = 1.0
+                elif final[current_state] == 1:  # final state goes to sink state
+                    next_state = nbS-1
+                    tm[current_state, next_state] = 1.0
+                else:
+                    next_state = current_state + (n + 1 - i)
+                    if next_state < nbS:  # check if the state index grows over the limit
+                        tm[current_state, next_state] = 1.0
+                    else:
+                        next_state = nbS-1
+                        tm[current_state, next_state] = 1.0
+                tm[nbS-1,nbS-1] = 1.0  # sink state
+            w_index += 1
+            current_state += 1
+
+    return DFA.DFA(nbS, len(sigma), 0, initial, transition, final)
+
+
+if __name__ == "__main__":
+    # Test DFA Constructor
+    dfa = DFA_constructor('aaaaaa', 1, ['a', 'b'])
+    dfa.print()
+    print(dfa.verify_acceptance('aaaaab'))
 

@@ -1,10 +1,12 @@
+""" This module defines Levinshtein Automata class """
+
 from common_header import *
-from DFA import DFA 
+import DFA 
 import PFA
 import PFA_utils
 
-class LevenshteinAutomaton(DFA):
-    def __init__(self, string, max_edits, alphabets):
+class LevenshteinAutomaton(DFA.DFA):
+    def __init__(self, string, max_edits):
         super(LevenshteinAutomaton, self).__init__(nbL = 0, nbS = 0, initial_state = 0, states = [],
                                                    transitions = {}, final_states = [])
         self.string = string
@@ -13,7 +15,7 @@ class LevenshteinAutomaton(DFA):
         """
         alphabets = []
         for alphabet in string:
-             alphabets.append(alphabet)
+            alphabets.append(alphabet)
         self.alphabets = list(set(alphabets))
         """
         self.alphabets = [str(alpha) for alpha in alphabets]
@@ -56,9 +58,9 @@ class LevenshteinAutomaton(DFA):
     ### not used ###
     def one_state_transitions(self, state):
         Return OUT transitions(alphabets) of the state
-        #print(set(c for (i,c) in enumerate(self.string) if state[i] <= self.max_edits))
-        return list(set(c for (i,c) in enumerate(self.string) if state[i] <= self.max_edits))
-    """
+        """
+        return set(c for (i,c) in enumerate(self.string) if state[i] <= self.max_edits)
+
     def explore(self, state):
         """
         IN: state(levenshtein distance list of row i;ith character of the string)
@@ -82,7 +84,7 @@ class LevenshteinAutomaton(DFA):
         return i
 
     def transitions_matrix(self):
-        #These transition matrices may be sparse matrices 
+        #These transition matrices may be sparse matrices
         nbS = self.nbS
         old_transitions = self.transitions
         self.transitions = {}
@@ -114,10 +116,15 @@ class LevenshteinAutomaton(DFA):
             self.transitions.pop('',None)
 
 if __name__ == "__main__":
-    at = PFA_utils.parser("./inputs/input_new.txt")
-    alphabets = "abcdefghijklmnopqrstuvwxyz"
-    lev = LevenshteinAutomaton("ab", 1, alphabets)
+    """ Levinshtein Automata class unit-test code """
+    at = PFA_utils.parser("./inputs/pfa/input0.txt")
+    print('parsing done')
+    start_time = time.time()
+    lev = LevenshteinAutomaton("abaaab", 3)
+    print('levenshtein done')
     r = at.intersect_with_DFA(lev)
+    end_time = time.time()
+    print('intersect done')
     """
     state0 = lev.start()
     print(state0)
@@ -135,15 +142,15 @@ if __name__ == "__main__":
     print(lev.states)
     print("-------------------------------------")
     print("transitions")
-    print(lev.transitions)
+    #print(lev.transitions)
     print("-------------------------------------")
     print("accepting_states")
-    print(lev.final_states)
+    #print(lev.final_states)
 
     lev.transitions_matrix()
     print("-------------------------------------")
     print("transitions matrices")
-    print(lev.transitions)
+    #print(lev.transitions)
     print("-------------------------------------")
 
     
@@ -151,11 +158,13 @@ if __name__ == "__main__":
     print(r.nbS)
     print("-------------------------------------")
     print("transitions")
-    print(r.transitions)
+    #print(r.transitions)
     print("-------------------------------------")
     print("intial_states")
-    print(r.initial)
+    #print(r.initial)
     print("-------------------------------------")
     print("final_states")
-    print(r.final)
-    
+    #print(r.final)
+    print("-------------------------------------")
+    print("total running time of lev + intersection")
+    print(end_time - start_time)

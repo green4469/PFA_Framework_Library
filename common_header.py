@@ -1,3 +1,5 @@
+"""This module import common modules used by other modules in this project"""
+
 import numpy as np
 from numpy.linalg import inv
 import math
@@ -7,3 +9,4 @@ import itertools
 import os
 import sys
 import time
+import argparse

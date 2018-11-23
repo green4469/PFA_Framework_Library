@@ -17,7 +17,7 @@ string/string2.txt
 strings file format
 strings.txt
 """
-from PFA import PFA
+import PFA
 import PFA_utils
 import os
 import sys
