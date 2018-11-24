@@ -86,8 +86,8 @@ class MyWindow(QMainWindow, form_class):
         sub_dpfa = PFA.PFA(ra.nbL, ra.nbS, ra.initial, ra.final, ra.transitions)
 
         # normalize sub_pfa -> dpfa
-        self.dpfa = PFA_utils.normalizer(sub_dpfa)
-        ##self.dpfa = input_dpfa
+        ##self.dpfa = PFA_utils.normalizer(sub_dpfa)
+        self.dpfa = input_dpfa
 
         # Do exact MPS on dpfa
         k_mps = self.dpfa.MPS()
@@ -103,7 +103,8 @@ class MyWindow(QMainWindow, form_class):
         
         # update drawing
         makePNG(self.dpfa)
-        pixmap = QtGui.QPixmap("DPFA.png") 
+        pixmap = QtGui.QPixmap("DPFA.png")
+        pixmap = pixmap.scaledToHeight(min(691,pixmap.height())) 
         self.draw.setPixmap(pixmap)
 
         self.textBrowser.setText(str(load_time)+' seconds')
@@ -120,13 +121,15 @@ class MyWindow(QMainWindow, form_class):
             self.item_selected(self.tableWidget.currentRow())
         else:
             makePNG(self.dpfa)
-            pixmap = QtGui.QPixmap("DPFA.png") 
+            pixmap = QtGui.QPixmap("DPFA.png")
+            pixmap = pixmap.scaledToHeight(min(691,pixmap.height())) 
             self.draw.setPixmap(pixmap)
 
     def item_selected(self, row):
         item = self.tableWidget.item(row, 1).text()
         emphasizePNG(self.dpfa, item)
-        pixmap = QtGui.QPixmap("DPFA.png") 
+        pixmap = QtGui.QPixmap("DPFA.png")
+        pixmap = pixmap.scaledToHeight(min(691,pixmap.height())) 
         self.draw.setPixmap(pixmap)
         
 def makePNG(RA):
@@ -176,7 +179,7 @@ def emphasizePNG(RA, string):
         probability = round(RA.transitions[character][current_node,next_node],2)
         # draw edges that matche string
         dot.edge(str(current_node), str(next_node), '{}, {}'.format(character,probability),style='bold')
-        edge_dict[(current_node, next_node)] = None
+        edge_dict[(current_node, next_node, character)] = None
         current_node = next_node
         str_idx += 1
 
@@ -184,7 +187,7 @@ def emphasizePNG(RA, string):
     for alphabet in RA.transitions.keys():
         for i in range(RA.nbS):
             for j in range(RA.nbS):
-                if (i,j) not in edge_dict.keys() and RA.transitions[alphabet][i,j] > 0:
+                if (i,j, alphabet) not in edge_dict.keys() and RA.transitions[alphabet][i,j] > 0:
                     probability = round(RA.transitions[alphabet][i,j],2)
                     dot.edge(str(i), str(j), '{}, {}'.format(alphabet,probability),style='dashed')
 
