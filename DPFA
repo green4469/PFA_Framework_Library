@@ -1,9 +1,10 @@
 // PFA
 digraph {
-	0 [label="1.0 : 0 : 0.66"]
+	0 [label="1.0 : 0 : 0.96"]
 	1 [label="0.0 : 1 : 1.0"]
-	0 -> 1 [label="a, 0.34"]
+	0 [label="1.0 : 0 : 0.96" fillcolor=yellow style=filled]
+	0 -> 1 [label="a, 0.04" style=dashed]
 	node [shape=none]
 	""
-	"" -> 0
+	"" -> 0 [style=bold]
 }

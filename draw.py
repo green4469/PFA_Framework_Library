@@ -48,9 +48,9 @@ class multithread(QRunnable):
         try:
             result = self.fn(*self.args, **self.kwargs)
         except:
-            traceback.print_exc()
+            #traceback.print_exc()
             exctype, value = sys.exc_info()[:2]
-            self.signals.error.emit((exctype, value, traceback.format_exc()))
+            #self.signals.error.emit((exctype, value, traceback.format_exc()))
         else:
             self.signals.result.emit(result)  # Return the result of the processing
         finally:
@@ -76,15 +76,18 @@ class MyWindow(QMainWindow, form_class):
     def enter_pressed(self):
         start_time = time.time()
         # make hamming automaton
-        hamming = PFA_utils.DFA_constructor(str(self.lineEdit.text()), self.k, list(set(self.lineEdit.text())))
+        input_string = str(self.lineEdit.text())
+        sigma = list(set(input_string))
+        hamming = PFA_utils.DFA_constructor(input_string, self.k, sigma)
         
         # intersect hamming & pfa -> sub_pfa
-        input_dpfa = PFA_utils.DPFA_generator(2, 2)
+        input_dpfa = PFA_utils.DPFA_generator(nbS = 6, nbL = 3)
         ra = input_dpfa.intersect_with_DFA(hamming)
         sub_dpfa = PFA.PFA(ra.nbL, ra.nbS, ra.initial, ra.final, ra.transitions)
 
         # normalize sub_pfa -> dpfa
         self.dpfa = PFA_utils.normalizer(sub_dpfa)
+        ##self.dpfa = input_dpfa
 
         # Do exact MPS on dpfa
         k_mps = self.dpfa.MPS()
@@ -128,50 +131,64 @@ class MyWindow(QMainWindow, form_class):
         
 def makePNG(RA):
     dot = Digraph(comment='PFA', format='png')
+    # draw nodes
     for i in range(RA.nbS):
         initial_prob = round(RA.initial[i],2)
         final_prob = round(RA.final[i],2)
         dot.node(str(i),'{} : {} : {}'.format(initial_prob,str(i),final_prob))
+    # draw edges
     for alphabet in RA.transitions.keys():
         for i in range(RA.nbS):
             for j in range(RA.nbS):
                 if RA.transitions[alphabet][i,j] > 0:
                     probability = round(RA.transitions[alphabet][i,j],2)
                     dot.edge(str(i), str(j), '{}, {}'.format(alphabet,probability))
+    # draw start edge
     dot.attr('node',shape='none')
     dot.node('')
     dot.edge('','0')
     dot.render('DPFA')
 
 def emphasizePNG(RA, string):
-    current_node = 0
-    str_idx = 0
+    edge_dict = {}
     dot = Digraph(comment='PFA', format='png')
+
+    # draw nodes
     for i in range(RA.nbS):
         initial_prob = round(RA.initial[i],2)
         final_prob = round(RA.final[i],2)
-        if i == current_node:
-            if str_idx < len(string):
-                current_node = np.nonzero(RA.transitions[string[str_idx]][current_node])[0]
-                str_idx += 1
-            dot.node(str(i),'{} : {} : {}'.format(initial_prob,str(i),final_prob),style='filled',fillcolor='yellow')
-        else:
-            dot.node(str(i),'{} : {} : {}'.format(initial_prob,str(i),final_prob))
-    
-    current_node = 0
+        dot.node(str(i),'{} : {} : {}'.format(initial_prob,str(i),final_prob))
+
     str_idx = 0
+    current_node = 0
+    # color the start node
+    initial_prob = round(RA.initial[current_node],2)
+    final_prob = round(RA.final[current_node],2)
+    dot.node(str(current_node), '{} : {} : {}'.format(initial_prob,current_node,final_prob),style='filled',fillcolor='yellow')
+    
+    while str_idx < len(string):
+        next_node = np.nonzero(RA.transitions[string[str_idx]][current_node])[0][0]
+        initial_prob = round(RA.initial[next_node],2)
+        final_prob = round(RA.final[next_node],2)
+        # color the nodes that matche string
+        dot.node(str(next_node), '{} : {} : {}'.format(initial_prob,next_node,final_prob),style='filled',fillcolor='yellow')
+        character = string[str_idx]
+        probability = round(RA.transitions[character][current_node,next_node],2)
+        # draw edges that matche string
+        dot.edge(str(current_node), str(next_node), '{}, {}'.format(character,probability),style='bold')
+        edge_dict[(current_node, next_node)] = None
+        current_node = next_node
+        str_idx += 1
+
+    # draw remaining edges
     for alphabet in RA.transitions.keys():
         for i in range(RA.nbS):
             for j in range(RA.nbS):
-                if RA.transitions[alphabet][i,j] > 0:
-                    if i == current_node and str_idx < len(string):
-                        current_node = j
-                        str_idx += 1
-                        probability = round(RA.transitions[alphabet][i,j],2)
-                        dot.edge(str(i), str(j), '{}, {}'.format(alphabet,probability),style='bold')
-                    else:   
-                        probability = round(RA.transitions[alphabet][i,j],2)
-                        dot.edge(str(i), str(j), '{}, {}'.format(alphabet,probability),style='dashed')
+                if (i,j) not in edge_dict.keys() and RA.transitions[alphabet][i,j] > 0:
+                    probability = round(RA.transitions[alphabet][i,j],2)
+                    dot.edge(str(i), str(j), '{}, {}'.format(alphabet,probability),style='dashed')
+
+    # start edge
     dot.attr('node',shape='none')
     dot.node('')
     dot.edge('','0',style='bold')
