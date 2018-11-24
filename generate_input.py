@@ -2,7 +2,7 @@
 instructions
 generate_input.py dpfa num_of_files nb_states_min nb_states_max
 generate_input.py string_for_pfa
-generate_input.py string num_of_strings
+generate_input.py string num_of_alphabets
 
 pfa file format
 pfa/input1.txt

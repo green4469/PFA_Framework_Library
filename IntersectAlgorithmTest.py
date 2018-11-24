@@ -9,13 +9,13 @@ total_start = time.time()
 
 # Generate a DFA that accepts strings only within k-hamming distance from given input string
 start = time.time()
-dfa = PFA_utils.DFA_constructor('abab', 2, ['a', 'b'])  # w, k, sigma
+dfa = PFA_utils.DFA_constructor('ba', 2, ['a', 'b'])  # w, k, sigma
 end = time.time()
 print('Finished dfa construction...', end-start)
 
 # Genearte a random DPFA
 start = time.time()
-dpfa = PFA_utils.DPFA_generator(20, 7)  # nbS, nbL
+dpfa = PFA_utils.DPFA_generator(2, 2)  # nbS, nbL
 end = time.time()
 print('Finished dpfa genearation...', end-start)
 
@@ -44,8 +44,9 @@ print('Finished MPS...', end-start)
 total_end = time.time()
 
 print(total_end - total_start, k_mps)
+dpfa.print()
 
-
+"""
 print("#########TEST Normalizer########")
 initial = np.array([.6, 0])
 final = np.array([0.1, 0.2])
@@ -62,3 +63,4 @@ print(PFA_utils.verifier(at=at, isFile=False))
 print("total value after normalization:", at2.initial@np.linalg.inv(np.eye(at2.nbS)-(at2.transitions['a']+at2.transitions['b']))@at2.final)
 print(at.parse("aaa")/z, at2.parse("aaa"))
 at2.print()
+"""

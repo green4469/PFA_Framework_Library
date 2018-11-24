@@ -12,12 +12,10 @@ class LevenshteinAutomaton(DFA.DFA):
         self.string = string
         self.max_edits = max_edits
         self.states = {} #key: levenshtein distance list, value : a state number
-        """
         alphabets = []
         for alphabet in string:
             alphabets.append(alphabet)
         self.alphabets = list(set(alphabets))
-        """
         self.alphabets = [str(alpha) for alpha in alphabets]
         self.explore(self.start())
 
@@ -54,9 +52,9 @@ class LevenshteinAutomaton(DFA.DFA):
         # if the minimun distance of the distances less than or equal to k, the string is acceptable after reaching this state
         # otherwise( min(state) > k) there is no possibility to accept this string.
         return min(state) <= self.max_edits 
-    """
-    ### not used ###
-    def one_state_transitions(self, state):
+        """
+        ### not used ###
+        def one_state_transitions(self, state):
         Return OUT transitions(alphabets) of the state
         """
         return set(c for (i,c) in enumerate(self.string) if state[i] <= self.max_edits)
@@ -88,7 +86,7 @@ class LevenshteinAutomaton(DFA.DFA):
         nbS = self.nbS
         old_transitions = self.transitions
         self.transitions = {}
-        for alphabet in alphabets:
+        for alphabet in self.alphabets:
             self.transitions[alphabet] = np.zeros((nbS, nbS), dtype=np.float64)
         self.transitions[''] = np.zeros((nbS,nbS),dtype=np.float64)
         for (current_state, alphabet) in old_transitions:
@@ -117,10 +115,10 @@ class LevenshteinAutomaton(DFA.DFA):
 
 if __name__ == "__main__":
     """ Levinshtein Automata class unit-test code """
-    at = PFA_utils.parser("./inputs/pfa/input0.txt")
+    at = PFA_utils.parser("./inputs/input_new.txt")
     print('parsing done')
     start_time = time.time()
-    lev = LevenshteinAutomaton("abaaab", 3)
+    lev = LevenshteinAutomaton("ab", 1)
     print('levenshtein done')
     r = at.intersect_with_DFA(lev)
     end_time = time.time()
@@ -158,13 +156,13 @@ if __name__ == "__main__":
     print(r.nbS)
     print("-------------------------------------")
     print("transitions")
-    #print(r.transitions)
+    print(r.transitions)
     print("-------------------------------------")
     print("intial_states")
-    #print(r.initial)
+    print(r.initial)
     print("-------------------------------------")
     print("final_states")
-    #print(r.final)
+    print(r.final)
     print("-------------------------------------")
     print("total running time of lev + intersection")
     print(end_time - start_time)
