@@ -211,6 +211,8 @@ def from_initial_to_state_string(at, target_state):
     q = Queue()
     q.enqueue(root)
 
+    visited = []
+
     while not q.is_empty():
         current_node = q.dequeue()
         current_state = current_node.data[0]
@@ -223,12 +225,19 @@ def from_initial_to_state_string(at, target_state):
         for a, tm in at.transitions.items():
             # Each alphabet has one next state. (Since its sub-DPFA)
             # Find that state
+            if np.sum(tm[current_state]) == 0.0:
+                continue
+
             next_state = np.argmax(tm[current_state])
+
+            if next_state in visited:
+                continue
 
             new_node = Node()
             new_node.data = (next_state, current_string + a)
 
             q.enqueue(new_node)
+            visited.append(next_state)
 
     raise Exception('There exist unreachable state')
 

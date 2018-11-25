@@ -425,7 +425,6 @@ class PFA(RA.RA):
     """
     def intersect_with_DFA(self, D):
     # Myeong-Jang
-        import ipdb; ipdb.set_trace()
         P = self
         Q = list(itertools.product(range(P.nbS), range(D.nbS)))
         nbS = len(Q)
@@ -439,14 +438,14 @@ class PFA(RA.RA):
         transitions = {c:np.zeros((nbS, nbS)) for c in alphabets}
         state_mapping = {q:q[0]*D.nbS+q[1] for q in Q}
 
-        for q, q_ in list(itertools.product(Q, Q)):
-            for c in P.alphabets:
-
-                if c in D.alphabets and (q[1], c) in D.transitions.keys() and D.transitions[(q[1], c)] == q_[1]:
-                    transitions[c][state_mapping[q],state_mapping[q_]] = P.transitions[c][q[0], q_[0]]
-                else:
-                    transitions[c][state_mapping[q],state_mapping[q_]] = 0
+        #for q_dfa_1 in range(D.nbS):
+        #    for c in P.alphabets:
+        for (q_dfa_1, c) in D.transitions.keys():
+            q_dfa_2 = D.transitions[(q_dfa_1, c)]
+            for q, q_ in list(itertools.product(range(P.nbS), range(P.nbS))):
+                transitions[c][state_mapping[(q, q_dfa_1)],state_mapping[(q_, q_dfa_2)]] = P.transitions[c][q, q_]
         pfa = PFA(nbL, nbS, initial, final, transitions) # sub-PFA
+        print("pure intersect ended")
         pfa = remove_unreachable_states(pfa)
         pfa = remove_non_terminating_states(pfa)
         return pfa
