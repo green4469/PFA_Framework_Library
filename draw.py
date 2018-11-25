@@ -66,8 +66,12 @@ class MyWindow(QMainWindow, form_class):
         self.lineEdit_2.setText("0")
         self.lineEdit_2.textChanged.connect(self.hamming_distance)
         self.draw.setStyleSheet("background-color:#ffffff;")
+        #self.draw.setScaledContents(True)
         self.tableWidget.itemSelectionChanged.connect(self.clicked)
         self.tableWidget.setColumnWidth(1,900)
+        self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
+        self.scrollArea.setWidget(self.draw)
         self.dpfa = None
 
         # for multithreading in pyQT
@@ -103,8 +107,7 @@ class MyWindow(QMainWindow, form_class):
         
         # update drawing
         makePNG(self.dpfa)
-        pixmap = QtGui.QPixmap("DPFA.png")
-        pixmap = pixmap.scaledToHeight(min(691,pixmap.height())) 
+        pixmap = QtGui.QPixmap("DPFA.png") 
         self.draw.setPixmap(pixmap)
 
         self.textBrowser.setText(str(load_time)+' seconds')
@@ -122,14 +125,12 @@ class MyWindow(QMainWindow, form_class):
         else:
             makePNG(self.dpfa)
             pixmap = QtGui.QPixmap("DPFA.png")
-            pixmap = pixmap.scaledToHeight(min(691,pixmap.height())) 
             self.draw.setPixmap(pixmap)
 
     def item_selected(self, row):
         item = self.tableWidget.item(row, 1).text()
         emphasizePNG(self.dpfa, item)
         pixmap = QtGui.QPixmap("DPFA.png")
-        pixmap = pixmap.scaledToHeight(min(691,pixmap.height())) 
         self.draw.setPixmap(pixmap)
         
 def makePNG(RA):
