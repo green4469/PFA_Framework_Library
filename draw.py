@@ -79,7 +79,6 @@ class MyWindow(QMainWindow, form_class):
         self.tableWidget.itemSelectionChanged.connect(self.clicked)
         self.tableWidget.setColumnWidth(1,900)
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.scrollArea_1.setBackgroundRole(QtGui.QPalette.Dark)
         self.scrollArea_1.setWidget(self.draw_1)
         self.scrollArea_2.setWidget(self.draw_2)
         self.scrollArea_3.setWidget(self.draw_3)

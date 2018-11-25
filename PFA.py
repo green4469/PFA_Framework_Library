@@ -486,7 +486,6 @@ def remove_states_by_flag(pfa, flag):
         transitions = dict()
         for key in pfa.transitions.keys():
             transitions[key] = np.array([[]])
-        print('hello!!!!!!!!!!!!!!!!!\n',transitions)
         return PFA(pfa.nbL, nbS, np.array([]), np.array([]), transitions)
     try:
         initial = pfa.initial[idx_array]
