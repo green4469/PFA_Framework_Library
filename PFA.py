@@ -253,7 +253,7 @@ class PFA(RA.RA):
                 return min(self.prefix_prob(w), (self.nbS+1)**2/len(w))
             except:
                 return self.prefix_prob(w)
-        
+
         # Initially, the result string is empty string (lambda)
         w = ''
 
@@ -433,6 +433,7 @@ class PFA(RA.RA):
     """
     def intersect_with_DFA(self, D):
     # Myeong-Jang
+        import ipdb; ipdb.set_trace()
         P = self
         Q = list(itertools.product(range(P.nbS), range(D.nbS)))
         nbS = len(Q)
@@ -440,7 +441,7 @@ class PFA(RA.RA):
         alphabets = P.alphabets
         initial = [(P.initial[q[0]] * int(q[1]==D.initial_state)) for q in Q]
         initial = np.array(initial)
-        final = [(P.final[q[0]] * int(q[1] in D.final_states)) for q in Q]
+        final = [(P.final[q[0]] * D.final_states[q[1]]) for q in Q]
         final = np.array(final)
         transitions = {c:np.zeros((nbS, nbS)) for c in alphabets}
         state_mapping = {q:q[0]*D.nbS+q[1] for q in Q}

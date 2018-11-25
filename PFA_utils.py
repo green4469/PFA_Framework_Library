@@ -125,7 +125,7 @@ def DPFA_generator(nbS, nbL):
             for j, alpha in enumerate(sigma_T):
                 transitions[alpha][i][random.randint(0, nbS-1)] = probs[j+1]
 
-        at = PFA.PFA(nbL, nbS, initial, final, transitions) 
+        at = PFA.PFA(nbL, nbS, initial, final, transitions)
 
         if verifier(at=at, isFile=False):
             is_DPFA = True
@@ -313,7 +313,7 @@ def DFA_constructor(w, k, sigma):
             w_index += 1
             current_state += 1
 
-    return DFA.DFA(nbS, len(sigma), 0, initial, transition, final)
+    return DFA.DFA(len(sigma), nbS, 0, initial, transition, final)
 
 
 if __name__ == "__main__":
