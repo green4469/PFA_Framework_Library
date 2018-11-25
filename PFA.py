@@ -268,13 +268,6 @@ class PFA(RA.RA):
 
         while len(PQ) != 0 and Continue:
             ppw, w = heapq.heappop(PQ)
-            if w == 'b':
-                print("b detected")
-                exit()
-                """
-                z is before b
-                PP(z) > PP(b)
-                """
 
             if ppw > current_prob:
                 p = self.parse(w)
@@ -375,7 +368,6 @@ class PFA(RA.RA):
         suffix_list.reverse()
         x_list.reverse()  # Make the list original order
 
-
         # When k = 1
         if k == 1:
             x_list = list(x)
@@ -441,6 +433,7 @@ class PFA(RA.RA):
         alphabets = P.alphabets
         initial = [(P.initial[q[0]] * int(q[1]==D.initial_state)) for q in Q]
         initial = np.array(initial)
+        #final = [(P.final[q[0]] * int(q[1] in D.final_states)) for q in Q]
         final = [(P.final[q[0]] * D.final_states[q[1]]) for q in Q]
         final = np.array(final)
         transitions = {c:np.zeros((nbS, nbS)) for c in alphabets}
@@ -470,7 +463,7 @@ class PFA(RA.RA):
         new_transitions = {}
         for alphabet, transition in self.transitions.items():
             new_transitions[alphabet] = np.ceil(transition).astype(int)
-        print(new_transitions)
+        #print(new_transitions)
         states = [i for i in range(self.nbS)]
         initial_state = np.where(self.initial == 1.0)
         dfa = DFA.DFA(nbL = self.nbL, nbS = self.nbS, initial_state = initial_state, states = states, transitions = new_transitions)
@@ -490,7 +483,19 @@ def remove_states_by_flag(pfa, flag):
     idx_array = np.array([i for i in range(len(flag)) if flag[i] == True])
     nbL = pfa.nbL
     nbS = len(idx_array)
-    initial = pfa.initial[idx_array]
+    if nbS == 0:
+        transitions = dict()
+        for key in pfa.transitions.keys():
+            transitions[key] = np.array([[]])
+        return PFA(pfa.nbL, nbS, np.array([]), np.array([]), transitions)
+    try:
+        initial = pfa.initial[idx_array]
+    except:
+        print("pfa.initial:",pfa.initial)
+        print("idx_array:",idx_array)
+        print("error occurs when executing pfa.initial[idx_array]")
+        exit()
+
     final = pfa.final[idx_array]
     transitions = dict()
     for alphabet, transition in pfa.transitions.items():

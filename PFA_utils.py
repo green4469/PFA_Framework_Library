@@ -233,6 +233,8 @@ def from_initial_to_state_string(at, target_state):
     raise Exception('There exist unreachable state')
 
 def normalizer(at):
+    if at.nbS == 0:
+        return at
     new_initial = np.zeros(at.nbS, dtype=np.float64)
     new_initial[0] = 1.0
     at.initial = new_initial

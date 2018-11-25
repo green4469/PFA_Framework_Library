@@ -49,6 +49,8 @@ class DFA:
 
     def print(self):
         """ This method prints the initial, final probabilities and transition function """
+        print('nbS:',self.nbS)
+        print('nbL:',self.nbL)
         print('I', self.states)
         print('F', self.final_states)
         print('T', self.transitions)
