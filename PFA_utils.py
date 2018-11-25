@@ -223,6 +223,10 @@ def from_initial_to_state_string(at, target_state):
         for a, tm in at.transitions.items():
             # Each alphabet has one next state. (Since its sub-DPFA)
             # Find that state
+
+            if np.sum(tm[current_state]) == 0:
+                continue
+
             next_state = np.argmax(tm[current_state])
 
             new_node = Node()

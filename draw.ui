@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1600</width>
+    <width>1613</width>
     <height>951</height>
    </rect>
   </property>
@@ -119,7 +119,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab_1">
      <property name="enabled">
@@ -270,7 +270,7 @@
      <rect>
       <x>3</x>
       <y>27</y>
-      <width>1601</width>
+      <width>1571</width>
       <height>661</height>
      </rect>
     </property>
@@ -715,7 +715,7 @@
      <rect>
       <x>2</x>
       <y>27</y>
-      <width>1601</width>
+      <width>1571</width>
       <height>661</height>
      </rect>
     </property>
@@ -1155,8 +1155,8 @@
      <rect>
       <x>3</x>
       <y>27</y>
-      <width>1601</width>
-      <height>661</height>
+      <width>1571</width>
+      <height>631</height>
      </rect>
     </property>
     <property name="palette">
@@ -1595,8 +1595,8 @@
      <rect>
       <x>3</x>
       <y>27</y>
-      <width>1601</width>
-      <height>661</height>
+      <width>1571</width>
+      <height>631</height>
      </rect>
     </property>
     <property name="palette">
@@ -2095,7 +2095,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1600</width>
+     <width>1613</width>
      <height>31</height>
     </rect>
    </property>

@@ -98,7 +98,7 @@ class MyWindow(QMainWindow, form_class):
         self.pfa_nbL = int(nbL)
 
     def nbS_setting(self):
-        nbS = self.lineEdit_3.text()
+        nbS = self.lineEdit_4.text()
         if nbS == '':
            nbS = '0' 
         self.pfa_nbS = int(nbS)
@@ -110,61 +110,50 @@ class MyWindow(QMainWindow, form_class):
         alphabet = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'
         sigma = alphabet.split(' ')[0:self.pfa_nbL]
         self.hamming = PFA_utils.DFA_constructor(input_string, self.k, sigma)
-        
+        print('hamming done')
         # intersect hamming & pfa -> sub_pfa
         self.random_dpfa = PFA_utils.DPFA_generator(nbS = self.pfa_nbS, nbL = self.pfa_nbL)
+        print('random generation done')
         ra = self.random_dpfa.intersect_with_DFA(self.hamming)
         self.sub_dpfa = PFA.PFA(ra.nbL, ra.nbS, ra.initial, ra.final, ra.transitions)
+        
+        # intersected Automata 나중에 지우자
+        self.drawing_thread(self.random_dpfa, 'random_dpfa')
+        self.drawing_thread(self.hamming, 'hamming')
+        self.drawing_thread(self.sub_dpfa, 'sub_dpfa')
+        
+        print('intersecting dpfa done')
         # normalize sub_pfa -> dpfa
         self.dpfa = PFA_utils.normalizer(self.sub_dpfa)
+        print('normalizing done')
         ##self.dpfa = input_dpfa
         
-        if self.dpfa.nbS == 0:
-            # update drawing
-            # random PFA
-            self.drawing(self.random_dpfa, 'random_dpfa')
-        
-            # hamming Automata
-            self.drawing(self.hamming, 'hamming')
-        
-            # intersected Automata
-            self.drawing(self.sub_dpfa, 'sub_dpfa')
-        
-            # normalized Automata
-            self.drawing(self.dpfa, 'dpfa')
-            
-            end_time = time.time()
-            load_time = end_time - start_time
-            # initialize the table
-            self.tableWidget.clearContents()
-            self.tableWidget.setRowCount(0)
-            self.tableWidget.insertRow( self.tableWidget.rowCount() )
-            self.tableWidget.setItem( self.tableWidget.rowCount()-1, 1, QTableWidgetItem('NO MPS'))
-
-            self.textBrowser.setText(str(load_time)+' seconds')
-            return
-
         # Do exact MPS on dpfa
-        k_mps = self.dpfa.MPS()
+        if self.dpfa.nbS != 0:
+            k_mps = self.dpfa.MPS()
+        
         end_time = time.time()
         load_time = end_time - start_time
         # initialize the table
         self.tableWidget.clearContents()
         self.tableWidget.setRowCount(0)
-
         self.tableWidget.insertRow( self.tableWidget.rowCount() )
-        self.tableWidget.setItem( self.tableWidget.rowCount()-1, 0, QTableWidgetItem(str(round(self.dpfa.parse(k_mps),10))))
-        self.tableWidget.setItem( self.tableWidget.rowCount()-1, 1, QTableWidgetItem(k_mps))
+        
+        if self.dpfa.nbS == 0:
+            self.tableWidget.setItem( self.tableWidget.rowCount()-1, 1, QTableWidgetItem('NO MPS'))
+        else:
+            self.tableWidget.setItem( self.tableWidget.rowCount()-1, 0, QTableWidgetItem(str(round(self.dpfa.parse(k_mps),10))))
+            self.tableWidget.setItem( self.tableWidget.rowCount()-1, 1, QTableWidgetItem(k_mps))
         
         # update drawing
         # random PFA
-        self.drawing(self.random_dpfa, 'random_dpfa')
+        #self.drawing(self.random_dpfa, 'random_dpfa')
         
         # hamming Automata
-        self.drawing(self.hamming, 'hamming')
+        #self.drawing(self.hamming, 'hamming')
         
         # intersected Automata
-        self.drawing(self.sub_dpfa, 'sub_dpfa')
+        #self.drawing(self.sub_dpfa, 'sub_dpfa')
         
         # normalized Automata
         self.drawing(self.dpfa, 'dpfa')
