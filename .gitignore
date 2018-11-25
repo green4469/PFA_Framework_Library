@@ -5,3 +5,4 @@ yumin_dev.txt
 *.swp
 *.csv
 *.txt
+debug*
