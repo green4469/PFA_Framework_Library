@@ -79,10 +79,10 @@ class MyWindow(QMainWindow, form_class):
         self.tableWidget.itemSelectionChanged.connect(self.clicked)
         self.tableWidget.setColumnWidth(1,900)
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.scrollArea_1.setWidget(self.draw_1)
-        self.scrollArea_2.setWidget(self.draw_2)
-        self.scrollArea_3.setWidget(self.draw_3)
-        self.scrollArea_4.setWidget(self.draw_4)
+        #self.scrollArea_1.setWidget(self.draw_1)
+        #self.scrollArea_2.setWidget(self.draw_2)
+        #self.scrollArea_3.setWidget(self.draw_3)
+        #self.scrollArea_4.setWidget(self.draw_4)
         self.random_dpfa = None
         self.hamming = None
         self.sub_pfa = None
@@ -169,21 +169,25 @@ class MyWindow(QMainWindow, form_class):
             makePNG(self.random_dpfa, 'random_dpfa')
             random_dpfa = QtGui.QPixmap("random_dpfa.png") 
             self.draw_1.setPixmap(random_dpfa)
+            self.draw_1.resize(random_dpfa.size())
 
         elif file_name == 'hamming':
             makePNG(self.hamming, 'hamming')
             hamming = QtGui.QPixmap("hamming.png") 
             self.draw_2.setPixmap(hamming)
+            self.draw_2.resize(hamming.size())
 
         elif file_name == 'sub_dpfa':
             makePNG(self.sub_dpfa, 'sub_dpfa')
             sub_dpfa = QtGui.QPixmap("sub_dpfa.png") 
             self.draw_3.setPixmap(sub_dpfa)
+            self.draw_3.resize(sub_dpfa.size())
         
         elif file_name == 'dpfa':
             makePNG(self.dpfa, 'dpfa')
             dpfa = QtGui.QPixmap("dpfa.png") 
             self.draw_4.setPixmap(dpfa)
+            self.draw_4.resize(dpfa.size())
 
     def hamming_distance(self):
         d = self.lineEdit_2.text()
