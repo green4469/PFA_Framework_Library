@@ -109,6 +109,7 @@ def DPFA_generator(nbS, nbL):
 
 
         for i in range(nbS):
+            #T = len(sigma)
             T = random.randint(0, len(sigma))  # number of outgoint transitions
 
             # Select T alphabets from sigma

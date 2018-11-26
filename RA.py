@@ -55,12 +55,22 @@ class RA(object):
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
         T = F[n,:]@np.transpose(self.final[:])
         return T
+        """
+        #naive forwarding
+        if len(string) == 2:
+            import ipdb; ipdb.set_trace()
+        T = self.initial
+        for char in string:
+            T = T @ self.transitions[char]
+        T = T @ self.final
+        return T
+        """
 
 
     """
     Input           None
     Output          the automaton without epsilon(lambda) transitions
-    Description     
+    Description
     """
     def epsilon_transition_removal(self):
         #if there are epsilon-transitions do
@@ -88,7 +98,7 @@ class RA(object):
                 self.nbS = Q_prime
                 self.initial = initial_prime
                 self.final = final_prime
-                
+
                 #new transition with just one initial state q_0
                 for key in self.transitions.keys():
                     temp = self.transitions[key][:,:]
@@ -134,4 +144,4 @@ class RA(object):
             self.nbL -= 1
         ####### 현재 객체 안의 값 바꾸지 말고 return 으로 객체 반환하기(현재 객체는 유지)??
         ####### or 현재 객체 안의 값을 바꾸고 return 없음.(<<----현재 이것)
-    
+

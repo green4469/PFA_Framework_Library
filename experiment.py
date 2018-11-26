@@ -22,7 +22,8 @@ def str2list(s):
 
 def main(args):
     k_range = args.k_range
-    print(k_range)
+    k_range[1] += 1
+    k_range = range(*k_range)
     nbS = args.nbS
     nbL = args.nbL
     max_n = args.max_n
@@ -39,48 +40,61 @@ def main(args):
     PFA_utils.pfa2input(dpfa, result_path+".dpfa")
     sigma = [str(chr(ord('a')+i)) for i in range(nbL)]
     for k in k_range:
-        #w = ''.join(np.random.choice(sigma, n))
-        for i in range(iters):
-            w = dpfa.generate()
-            while len(w) > max_n or len(w) == 0:
-                w = dpfa.generate()
-            n = len(w)
-            if k > n:
-                k = np.random.randint(1, n+1)
-            RT = dict()
-            mps = dict()
-            for algorithm in ['dp', 'intersect']:
-                print("[{}] k: {}, n: {}, nbS: {}, nbL: {}".format(algorithm, k, n, nbS, nbL))
-                print('given string',w)
-                # 2. run MPS
-                start_time = time.time()
-                if 'intersect' in algorithm.lower():
-                    print('hamming automaton...')
-                    dfa = PFA_utils.DFA_constructor(w, k, sigma)
-                    print('nbS of the hamming automaton: {}'.format(dfa.nbS))
-                    print('intersecting...')
-                    sub_dpfa = dpfa.intersect_with_DFA(dfa)
-                    sub_dpfa = PFA.PFA(sub_dpfa.nbL, sub_dpfa.nbS, sub_dpfa.initial, sub_dpfa.final, sub_dpfa.transitions)
-                    print('nbS of intersected DPFA: {}'.format(sub_dpfa.nbS))
-                    print('normalizing...')
-                    dpfa = PFA_utils.normalizer(sub_dpfa)
-                    print('MPS...')
-                    mps[algorithm] = dpfa.MPS()
-                elif 'dp' in algorithm.lower():
-                    mps[algorithm] = dpfa.k_MPS(w, k)
-                elif 'bf' in algorithm.lower():
-                    mps[algorithm] = dpfa.k_MPS_bf(w, k)
-                else:
-                    raise NotImplementedError
-                print('done!')
-                end_time = time.time()
-                RT[algorithm] = end_time - start_time
-                print('time elapsed: {:.4f}s'.format(RT[algorithm]))
-            # 3. record RT
-            print('[RESULTS] {}: {}, {}: {}'.format('dp', mps['dp'], 'intersect', mps['intersect']))
-            with open(result_path+'.csv', 'a') as f:
-                f.write('{},{},{},{},{:.5f},{:.5f},{}\n'.format(
-                        k, n, nbS, nbL, RT['dp'], RT['intersect'], w))
+        for n in range(k, max_n+1):
+            for i in range(iters):
+                #w = dpfa.generate()
+                #n = np.random.randint(k, max_n+1)
+                w = ''.join(np.random.choice(sigma, n))
+                prob = dpfa.parse(w)
+                """
+                while len(w) == 0 or prob ==0.0:
+                    #w = dpfa.generate()
+                    n = np.random.randint(1, max_n+1)
+                    w = ''.join(np.random.choice(sigma, n))
+                    prob = dpfa.parse(w)
+                n = len(w)
+                if k > n:
+                    k = np.random.randint(1, n+1)
+                """
+                RT = dict()
+                mps = dict()
+                for algorithm in ['dp', 'intersect']:
+                    print("[{}] k: {}, n: {}, nbS: {}, nbL: {}".format(algorithm, k, n, nbS, nbL))
+                    print('given string',w,'with prob',prob)
+                    # 2. run MPS
+                    start_time = time.time()
+                    if 'intersect' in algorithm.lower():
+                        print('hamming automaton...')
+                        dfa = PFA_utils.DFA_constructor(w, k, sigma)
+                        print('nbS of the hamming automaton: {}'.format(dfa.nbS))
+                        print('intersecting...')
+                        sub_dpfa = dpfa.intersect_with_DFA(dfa)
+                        sub_dpfa = PFA.PFA(sub_dpfa.nbL, sub_dpfa.nbS, sub_dpfa.initial, sub_dpfa.final, sub_dpfa.transitions)
+                        print('nbS of intersected DPFA: {}'.format(sub_dpfa.nbS))
+                        if sub_dpfa.nbS > 0:
+                            print('normalizing...')
+                            normalized_dpfa = PFA_utils.normalizer(sub_dpfa)
+                            print('MPS...')
+                            mps[algorithm] = normalized_dpfa.MPS()
+                        else:
+                            mps[algorithm] = None
+                    elif 'dp' in algorithm.lower():
+                        mps[algorithm] = dpfa.k_MPS(w, k)
+                    elif 'bf' in algorithm.lower():
+                        mps[algorithm] = dpfa.k_MPS_bf(w, k)
+                    else:
+                        raise NotImplementedError
+                    print('done!')
+                    end_time = time.time()
+                    RT[algorithm] = end_time - start_time
+                    print('time elapsed: {:.4f}s'.format(RT[algorithm]))
+                # 3. record RT
+                if sub_dpfa.parse(mps['dp']) == 0.:
+                    mps['dp'] = None
+                print('[RESULTS] {}: {}, {}: {}'.format('dp', mps['dp'], 'intersect', mps['intersect']))
+                with open(result_path+'.csv', 'a') as f:
+                    f.write('{},{},{},{},{:.5f},{:.5f},{}\n'.format(
+                            k, n, nbS, nbL, RT['dp'], RT['intersect'], w))
 
 
 
