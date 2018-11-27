@@ -167,7 +167,7 @@ class MyWindow(QMainWindow, form_class):
         # make hamming automaton
         input_string = str(self.lineEdit.text())
         input_nbL = len(set(input_string))
-        if input_nbL >= self.pfa_nbL:
+        if input_nbL > self.pfa_nbL:
             print_warning("error: nbL of DFA is bigger than nbL of PFA")
             print('error: nbL of DFA is bigger than nbL of PFA')
             return
