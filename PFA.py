@@ -6,7 +6,8 @@ import RA
 import DFA
 from DS import Node, Queue
 import heapq
-import lev
+#import lev
+from collections import deque
 
 
 class PFA(RA.RA):
@@ -290,6 +291,49 @@ class PFA(RA.RA):
 
         return current_best
 
+    def n_MPS(self, n):
+        def PP(w):
+            try:
+                return min(self.prefix_prob(w), (self.nbS+1)**2/len(w))
+            except:
+                return self.prefix_prob(w)
+        
+        # Initially, the result string is empty string (lambda)
+        w = ''
+
+        current_prob = 0
+        MPS_list = deque( maxlen = n )
+        current_best = ''
+
+        # Instantiate a Priority Queue
+        PQ = []
+        heapq.heappush(PQ, (PP(w), w))
+
+        Continue = True
+
+        while len(PQ) != 0 and Continue:
+            ppw, w = heapq.heappop(PQ)
+
+            if ppw > current_prob:
+                p = self.parse(w)
+
+                if p > current_prob:
+                    current_prob = p
+                    current_best = w
+                    MPS_list.appendleft(w)
+                for char in self.alphabets:
+                    ppwc = PP(w+char)
+                    if ppwc > current_prob:
+                        heapq.heappush(PQ, (ppwc, w+char))
+
+            else:
+                Continue = False
+                print("continue false set")
+                print("current_prob: {}".format(current_prob))
+                print("PP(b): {}".format(PP('b')))
+                print("PP(z): {}".format(PP('z')))
+
+        return MPS_list
 
 
 
@@ -438,14 +482,14 @@ class PFA(RA.RA):
         transitions = {c:np.zeros((nbS, nbS)) for c in alphabets}
         state_mapping = {q:q[0]*D.nbS+q[1] for q in Q}
 
-        for q, q_ in list(itertools.product(Q, Q)):
-            for c in P.alphabets:
-
-                if c in D.alphabets and (q[1], c) in D.transitions.keys() and D.transitions[(q[1], c)] == q_[1]:
-                    transitions[c][state_mapping[q],state_mapping[q_]] = P.transitions[c][q[0], q_[0]]
-                else:
-                    transitions[c][state_mapping[q],state_mapping[q_]] = 0
+        #for q_dfa_1 in range(D.nbS):
+        #    for c in P.alphabets:
+        for (q_dfa_1, c) in D.transitions.keys():
+            q_dfa_2 = D.transitions[(q_dfa_1, c)]
+            for q, q_ in list(itertools.product(range(P.nbS), range(P.nbS))):
+                transitions[c][state_mapping[(q, q_dfa_1)],state_mapping[(q_, q_dfa_2)]] = P.transitions[c][q, q_]
         pfa = PFA(nbL, nbS, initial, final, transitions) # sub-PFA
+        print("pure intersect ended")
         pfa = remove_unreachable_states(pfa)
         pfa = remove_non_terminating_states(pfa)
         return pfa

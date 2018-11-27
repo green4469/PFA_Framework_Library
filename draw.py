@@ -63,33 +63,59 @@ class MyWindow(QMainWindow, form_class):
         self.k=0
         self.pfa_nbS = 3
         self.pfa_nbL = 3
-        self.lineEdit.returnPressed.connect(self.enter_pressed)
-        self.lineEdit_2.returnPressed.connect(self.enter_pressed)
-        self.lineEdit_2.setText(str(self.k))
-        self.lineEdit_3.setText(str(self.pfa_nbL))
-        self.lineEdit_4.setText(str(self.pfa_nbS))
-        self.lineEdit_2.textChanged.connect(self.hamming_distance)
-        self.lineEdit_3.textChanged.connect(self.nbL_setting)
-        self.lineEdit_4.textChanged.connect(self.nbS_setting)
-        self.draw_1.setStyleSheet("background-color:#ffffff;")
-        self.draw_2.setStyleSheet("background-color:#ffffff;")
-        self.draw_3.setStyleSheet("background-color:#ffffff;")
-        self.draw_4.setStyleSheet("background-color:#ffffff;")
-        #self.draw.setScaledContents(True)
-        self.tableWidget.itemSelectionChanged.connect(self.clicked)
-        self.tableWidget.setColumnWidth(1,900)
-        self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        #self.scrollArea_1.setWidget(self.draw_1)
-        #self.scrollArea_2.setWidget(self.draw_2)
-        #self.scrollArea_3.setWidget(self.draw_3)
-        #self.scrollArea_4.setWidget(self.draw_4)
-        self.random_dpfa = None
+        self.num_of_string = 1
+        self.input_dpfa = None
         self.hamming = None
         self.sub_pfa = None
         self.dpfa = None
+        self.current_tab = 3
+        self.k_mps_list = []
+        self.fname = None
+        self.pfa_mode = 'random' # random or file
+        self.lineEdit.returnPressed.connect(self.enter_pressed)
+        self.lineEdit_2.returnPressed.connect(self.enter_pressed)
+        self.lineEdit_5.returnPressed.connect(self.filling_table)
+        self.pushButton.clicked.connect(self.pushButtonClicked)
+        self.lineEdit_2.setText(str(self.k))
+        self.lineEdit_3.setText(str(self.pfa_nbL))
+        self.lineEdit_4.setText(str(self.pfa_nbS))
+        self.lineEdit_5.setText(str(self.num_of_string))
+        self.lineEdit_2.textChanged.connect(self.hamming_distance)
+        self.lineEdit_3.textChanged.connect(self.nbL_setting)
+        self.lineEdit_4.textChanged.connect(self.nbS_setting)
+        self.lineEdit_5.textChanged.connect(self.num_of_string_setting)
+        self.scrollArea_1.setStyleSheet("background-color:#ffffff;")
+        self.scrollArea_2.setStyleSheet("background-color:#ffffff;")
+        self.scrollArea_3.setStyleSheet("background-color:#ffffff;")
+        self.scrollArea_4.setStyleSheet("background-color:#ffffff;")
+        self.tableWidget.itemSelectionChanged.connect(self.clicked)
+        self.tableWidget.setColumnWidth(1,900)
+        self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.radioButton_1.clicked.connect(self.radioButtonClicked)
+        self.radioButton_2.clicked.connect(self.radioButtonClicked)
+        #self.tabWidget.currentChanged.connect(self.tab_change)
+        #QScroller.grabGesture(self.scrollArea_1.viewport(), QScroller.LeftMouseButtonGesture)
+        #QScroller.grabGesture(self.scrollArea_2.viewport(), QScroller.LeftMouseButtonGesture)
+        #QScroller.grabGesture(self.scrollArea_3.viewport(), QScroller.LeftMouseButtonGesture)
+        QScroller.grabGesture(self.scrollArea_4.viewport(), QScroller.LeftMouseButtonGesture)
+        #self.scrollArea_1.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        #self.scrollArea_2.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        #self.scrollArea_3.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        #self.scrollArea_4.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
 
         # for multithreading in pyQT
         self.threadpool = QThreadPool()
+
+    def radioButtonClicked(self):
+        if self.radioButton_1.isChecked():
+            self.pfa_mode = 'random'
+        elif self.radioButton_2.isChecked():
+            self.pfa_mode = 'file'
+
+    def pushButtonClicked(self):
+            self.fname = QFileDialog.getOpenFileName(self)
+            print(self.fname)
+            self.textBrowser_2.setText(self.fname[0])
 
     def nbL_setting(self):
         nbL = self.lineEdit_3.text()
@@ -103,6 +129,12 @@ class MyWindow(QMainWindow, form_class):
            nbS = '0' 
         self.pfa_nbS = int(nbS)
 
+    def num_of_string_setting(self):
+        num_of_string = self.lineEdit_5.text()
+        if num_of_string == '':
+           num_of_string = '0' 
+        self.num_of_string = int(num_of_string)
+
     def enter_pressed(self):
         start_time = time.time()
         # make hamming automaton
@@ -111,65 +143,116 @@ class MyWindow(QMainWindow, form_class):
         sigma = alphabet.split(' ')[0:self.pfa_nbL]
         self.hamming = PFA_utils.DFA_constructor(input_string, self.k, sigma)
         print('hamming done')
+        # make pfa
+        if self.pfa_mode == 'random':
+            self.input_dpfa = PFA_utils.DPFA_generator(nbS = self.pfa_nbS, nbL = self.pfa_nbL)
+            #random_dpfa_bu = self.input_dpfa
+            print('random generation done')
+        elif self.pfa_mode == 'file':
+            self.input_dpfa = PFA_utils.parser(self.fname[0])
+            print('read input file done')
+            self.input_dpfa.print()
         # intersect hamming & pfa -> sub_pfa
-        self.random_dpfa = PFA_utils.DPFA_generator(nbS = self.pfa_nbS, nbL = self.pfa_nbL)
-        print('random generation done')
-        ra = self.random_dpfa.intersect_with_DFA(self.hamming)
+        start_intersect_time = time.time()
+        ra = self.input_dpfa.intersect_with_DFA(self.hamming)
+        end_intersect_time = time.time()
         self.sub_dpfa = PFA.PFA(ra.nbL, ra.nbS, ra.initial, ra.final, ra.transitions)
-        
-        # intersected Automata 나중에 지우자
-        self.drawing_thread(self.random_dpfa, 'random_dpfa')
-        self.drawing_thread(self.hamming, 'hamming')
-        self.drawing_thread(self.sub_dpfa, 'sub_dpfa')
-        
         print('intersecting dpfa done')
+        """
+        start_dp_time = time.time()
+        random_dpfa_bu.k_MPS(input_string, self.k)
+        end_dp_time = time.time()
+        print('=========================================')
+        print('intersect time:', end_intersect_time - start_intersect_time)
+        print('dp time       :', end_dp_time - start_dp_time)
+        print('=========================================')
+        """
+        # intersected Automata 나중에 지우자
+        #self.drawing_thread(self.input_dpfa, 'input_dpfa')
+        #self.drawing_thread(self.hamming, 'hamming')
+        #self.drawing_thread(self.sub_dpfa, 'sub_dpfa')
+        
         # normalize sub_pfa -> dpfa
         self.dpfa = PFA_utils.normalizer(self.sub_dpfa)
         print('normalizing done')
         ##self.dpfa = input_dpfa
         
-        # Do exact MPS on dpfa
-        if self.dpfa.nbS != 0:
-            k_mps = self.dpfa.MPS()
-        
+        # initialize the table
+        self.filling_table()
         end_time = time.time()
         load_time = end_time - start_time
-        # initialize the table
-        self.tableWidget.clearContents()
-        self.tableWidget.setRowCount(0)
-        self.tableWidget.insertRow( self.tableWidget.rowCount() )
-        
-        if self.dpfa.nbS == 0:
-            self.tableWidget.setItem( self.tableWidget.rowCount()-1, 1, QTableWidgetItem('NO MPS'))
-        else:
-            self.tableWidget.setItem( self.tableWidget.rowCount()-1, 0, QTableWidgetItem(str(round(self.dpfa.parse(k_mps),10))))
-            self.tableWidget.setItem( self.tableWidget.rowCount()-1, 1, QTableWidgetItem(k_mps))
-        
         # update drawing
         # random PFA
-        #self.drawing(self.random_dpfa, 'random_dpfa')
+        self.drawing(self.input_dpfa, 'input_dpfa')
         
         # hamming Automata
-        #self.drawing(self.hamming, 'hamming')
+        self.drawing(self.hamming, 'hamming')
         
         # intersected Automata
-        #self.drawing(self.sub_dpfa, 'sub_dpfa')
+        self.drawing(self.sub_dpfa, 'sub_dpfa')
         
         # normalized Automata
         self.drawing(self.dpfa, 'dpfa')
 
         self.textBrowser.setText(str(load_time)+' seconds')
+    
+    def tab_change(self,i): #changed!
+        #print('before, after:', self.current_tab, i)
+        if self.current_tab == 0:
+            sa = self.scrollArea_1            
+        if self.current_tab == 1:
+            sa = self.scrollArea_2            
+        if self.current_tab == 2:
+            sa = self.scrollArea_3            
+        if self.current_tab == 3:
+            sa = self.scrollArea_4
+        QScroller.ungrabGesture(sa.viewport())
+
+        if i == 0:
+            self.current_tab = 0
+            sa = self.scrollArea_1
+        elif i == 1:
+            self.current_tab = 1
+            sa = self.scrollArea_2
+        elif i == 2:
+            self.current_tab = 2
+            sa = self.scrollArea_3
+        elif i == 3:
+            self.current_tab = 3
+            sa = self.scrollArea_4
+        QScroller.grabGesture(sa.viewport(), QScroller.LeftMouseButtonGesture)        
+
+    def filling_table(self):
+        if self.dpfa == None:
+            self.enter_pressed()
+            return
+        # Do exact MPS on dpfa
+        if self.dpfa.nbS != 0:
+            self.k_mps_list = self.dpfa.n_MPS( self.num_of_string )
+
+        self.tableWidget.clearContents()
+        self.tableWidget.setRowCount(0)
+        
+        if self.dpfa.nbS == 0:
+            self.tableWidget.insertRow( self.tableWidget.rowCount() )
+            self.tableWidget.setItem( self.tableWidget.rowCount()-1, 1, QTableWidgetItem('NO MPS'))
+        else:
+            for i in range(min(self.num_of_string,len(self.k_mps_list))):
+                self.tableWidget.insertRow( self.tableWidget.rowCount() )
+                self.tableWidget.setItem( self.tableWidget.rowCount()-1, 0, QTableWidgetItem(str(round(self.dpfa.parse(self.k_mps_list[i]),10))))
+                self.tableWidget.setItem( self.tableWidget.rowCount()-1, 1, QTableWidgetItem(self.k_mps_list[i]))
+
 
     def drawing(self, automata, file_name):
         thread = multithread(self.drawing_thread, automata, file_name)
         self.threadpool.start(thread)
         
     def drawing_thread(self, automata, file_name):
-        if file_name == 'random_dpfa':
-            makePNG(self.random_dpfa, 'random_dpfa')
-            random_dpfa = QtGui.QPixmap("random_dpfa.png") 
-            self.draw_1.setPixmap(random_dpfa)
-            self.draw_1.resize(random_dpfa.size())
+        if file_name == 'input_dpfa':
+            makePNG(self.input_dpfa, 'input_dpfa')
+            input_dpfa = QtGui.QPixmap("input_dpfa.png") 
+            self.draw_1.setPixmap(input_dpfa)
+            self.draw_1.resize(input_dpfa.size())
 
         elif file_name == 'hamming':
             makePNG(self.hamming, 'hamming')
