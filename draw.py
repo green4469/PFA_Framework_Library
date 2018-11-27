@@ -120,36 +120,45 @@ class MyWindow(QMainWindow, form_class):
             self.textBrowser_2.setText(self.fname[0])
 
     def nbL_setting(self):
-        nbL = self.lineEdit_3.text()        
+        nbL = self.lineEdit_3.text()
+        if nbL == '':
+           nbL = '0'         
         if nbL.isdigit() == False:
             print_warning('Only numbers can be entered.')
             self.lineEdit_3.setText(str(self.pfa_nbL))
             return
-        if nbL == '':
-           nbL = '0' 
         self.pfa_nbL = int(nbL)
 
     def nbS_setting(self):
         nbS = self.lineEdit_4.text()
+        if nbS == '':
+           nbS = '0' 
         if nbS.isdigit() == False:
             print_warning('Only numbers can be entered.')
             self.lineEdit_4.setText(str(self.pfa_nbS))
             return
-        if nbS == '':
-           nbS = '0' 
         self.pfa_nbS = int(nbS)
 
     def num_of_string_setting(self):
         num_of_string = self.lineEdit_5.text()
+        if num_of_string == '':
+           num_of_string = '0' 
         if num_of_string.isdigit() == False:
             print_warning('Only numbers can be entered.')
             self.lineEdit_5.setText(str(self.num_of_string))
             return
-        if num_of_string == '':
-           num_of_string = '0' 
         self.num_of_string = int(num_of_string)
 
     def enter_pressed(self):
+        if self.num_of_string == 0:
+            print_warning('Wrong Input : Num of String')
+            return
+        elif self.pfa_nbL == 0:
+            print_warning('Wrong Input : Num of ∑')
+            return
+        elif self.pfa_nbS == 0:
+            print_warning('Wrong Input : Num of States')
+            return
         start_time = time.time()
         # make pfa
         if self.pfa_mode == 'random':
@@ -174,7 +183,6 @@ class MyWindow(QMainWindow, form_class):
                 print_warning("'{}' is not in ∑".format(str(character)))
                 return
         self.hamming = PFA_utils.DFA_constructor(input_string, self.k, sigma)
-        self.hamming.print()
         print('hamming done')    
         # intersect hamming & pfa -> sub_pfa
         start_intersect_time = time.time()
@@ -298,12 +306,12 @@ class MyWindow(QMainWindow, form_class):
 
     def hamming_distance(self):
         d = self.lineEdit_2.text()
+        if d == '':
+           d = '0' 
         if d.isdigit() == False:
             print_warning('Only numbers can be entered.')
             self.lineEdit_2.setText(str(self.k))
             return
-        if d == '':
-           d = '0' 
         self.k = int(d)
 
     def clicked(self):
