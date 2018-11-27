@@ -254,9 +254,36 @@ def normalizer(at):
     for alpha in at.alphabets:
         new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64)
 
-    ##
-    for current_state in range(at.nbS):
-        w = from_initial_to_state_string(at, current_state)
+    """
+    str_table = {0:''}
+    """
+    visited = [0]
+
+    from DS import Node, Queue
+    Q = Queue()
+    Q.enqueue(Node((0, '')))
+
+    while not Q.is_empty():
+        current_state, w = Q.dequeue().data
+
+        found = False
+        # DP
+        """
+        for a, tm in at.transitions.items():
+            for state in np.nonzero(tm[:,current_state])[0]:
+                if state in str_table.keys():
+                    w = str_table[state] + a
+                    found = True
+                    break
+            if found:
+                break
+
+        if not found:
+            w = from_initial_to_state_string(at, current_state)
+
+        str_table[current_state] = w
+        """
+
         new_final[current_state] = at.parse(w) / at.prefix_prob2(w)
 
         for a, tm in at.transitions.items():
@@ -266,6 +293,14 @@ def normalizer(at):
                 continue
 
             new_transitions[a][current_state, next_state] = at.prefix_prob2(w+a) / at.prefix_prob2(w)
+
+            #str_table[next_state] = w+a
+            if next_state not in visited:
+                visited.append(next_state)
+                Q.enqueue(Node((next_state, w+a)))
+
+    ##
+    #for current_state in range(at.nbS):
     ##
 
     at.final = new_final

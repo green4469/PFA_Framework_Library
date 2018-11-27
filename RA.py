@@ -13,6 +13,7 @@ class RA(object):
         self.transitions = transitions
         self.alphabets = self.transitions.keys()
         self.epsilon_transition_removal()
+        self.cuda = False
 
     def print(self):
         """
@@ -43,18 +44,25 @@ class RA(object):
         #Algorithm 5.2: FORWARD.
         n = int(len(string))
         Q = self.nbS
-        F = np.zeros((n+1, Q), dtype=np.float64) #F[n][s] = Pr_A(x,q_s), string x = a_1 a_2 ... a_n
+        if self.cuda:
+            F = torch.zeros((n+1, Q), dtype=torch.double).cuda() #F[n][s] = Pr_A(x,q_s), string x = a_1 a_2 ... a_n
+        else:
+            F = np.zeros((n+1, Q), dtype=np.float64) #F[n][s] = Pr_A(x,q_s), string x = a_1 a_2 ... a_n
 
         #initialize
-        F[0,:] = self.initial[:]
+        F[0,:] = self.initial
 
         for i in range(1,n+1):
             key = string[i-1]
-            F[i,:] += F[i-1,:]@self.transitions[key][:,:]
+            F[i,:] += F[i-1,:]@self.transitions[key]
 
         #Algorithm 5.3: Computing the probability of a string with FORWARD.
-        T = F[n,:]@np.transpose(self.final[:])
-        return T
+        if self.cuda:
+            T = F[n]@self.final
+            return float(T.cpu().data)
+        else:
+            T = F[n,:]@np.transpose(self.final)
+            return T
         """
         #naive forwarding
         if len(string) == 2:

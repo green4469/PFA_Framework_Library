@@ -33,14 +33,19 @@ def main(args):
         print(result_path,'exists')
         sys.exit()
     with open(result_path+'.csv', 'w+') as f:
-        f.write('k,n,nbS,nbL,RT_DP,RT_intersect,string\n')
+        f.write('k,n,nbS,nbL,RT_DP,RT_intersect,input_string,mps_DP,mps_intersect,intersect_time,normalize_time\n')
 
     # 1. generate a DPFA and string w \in \Sigma s.t. |w| = n
     dpfa = PFA_utils.DPFA_generator(nbS, nbL)
+    print("DPFA generated")
+    print("loading to GPU...")
+    dpfa.use_cuda()
     PFA_utils.pfa2input(dpfa, result_path+".dpfa")
     sigma = [str(chr(ord('a')+i)) for i in range(nbL)]
-    for k in k_range:
-        for n in range(k, max_n+1):
+    for n in range(1, max_n+1):
+        for k in k_range:
+            if k > n:
+                continue
             for i in range(iters):
                 #w = dpfa.generate()
                 #n = np.random.randint(k, max_n+1)
@@ -68,16 +73,21 @@ def main(args):
                         dfa = PFA_utils.DFA_constructor(w, k, sigma)
                         print('nbS of the hamming automaton: {}'.format(dfa.nbS))
                         print('intersecting...')
+                        intersect_start_time = time.time()
                         sub_dpfa = dpfa.intersect_with_DFA(dfa)
                         sub_dpfa = PFA.PFA(sub_dpfa.nbL, sub_dpfa.nbS, sub_dpfa.initial, sub_dpfa.final, sub_dpfa.transitions)
+                        intersect_time = time.time() - intersect_start_time
                         print('nbS of intersected DPFA: {}'.format(sub_dpfa.nbS))
+                        normalize_start_time = time.time()
                         if sub_dpfa.nbS > 0:
                             print('normalizing...')
                             normalized_dpfa = PFA_utils.normalizer(sub_dpfa)
+                            normalize_time = time.time() - normalize_start_time
                             print('MPS...')
                             mps[algorithm] = normalized_dpfa.MPS()
                         else:
                             mps[algorithm] = None
+                            normalize_time = time.time() - normalize_start_time
                     elif 'dp' in algorithm.lower():
                         mps[algorithm] = dpfa.k_MPS(w, k)
                     elif 'bf' in algorithm.lower():
@@ -93,8 +103,8 @@ def main(args):
                     mps['dp'] = None
                 print('[RESULTS] {}: {}, {}: {}'.format('dp', mps['dp'], 'intersect', mps['intersect']))
                 with open(result_path+'.csv', 'a') as f:
-                    f.write('{},{},{},{},{:.5f},{:.5f},{}\n'.format(
-                            k, n, nbS, nbL, RT['dp'], RT['intersect'], w))
+                    f.write('{},{},{},{},{:.5f},{:.5f},{},{},{},{},{}\n'.format(
+                            k, n, nbS, nbL, RT['dp'], RT['intersect'], w,mps['dp'],mps['intersect'],intersect_time,normalize_time))
 
 
 

@@ -30,6 +30,16 @@ class PFA(RA.RA):
         self.var = self.initial @ self.Msigma @ (self.I + self.Msigma) @ (self.inv_I_M ** 3) @ self.final \
                     - ( self.initial @ self.Msigma @ (self.inv_I_M ** 2) @ self.final ) ** 2  # variance of distribution
 
+    def use_cuda(self):
+        self.cuda = True
+        self.initial = torch.from_numpy(self.initial).cuda()
+        self.final = torch.from_numpy(self.final).cuda()
+        for key, val in self.transitions.items():
+            self.transitions[key] = torch.from_numpy(val).cuda()
+        self.I = torch.from_numpy(self.I).cuda()
+        self.inv_I_M = torch.from_numpy(self.inv_I_M).cuda()  # Inverse Matrix
+
+
     def viterbi(self, string):
         """
         # Hak-Su
