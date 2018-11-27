@@ -157,7 +157,7 @@ class MyWindow(QMainWindow, form_class):
             #random_dpfa_bu = self.input_dpfa
             print('random generation done')
         elif self.pfa_mode == 'file':
-            if self.fname == None:
+            if self.fname == None or self.fname[0] == '':
                 print_warning('NO FILE')
                 return
             self.input_dpfa = PFA_utils.parser(self.fname[0])
