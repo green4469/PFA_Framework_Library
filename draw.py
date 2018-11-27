@@ -109,6 +109,8 @@ class MyWindow(QMainWindow, form_class):
     def radioButtonClicked(self):
         if self.radioButton_1.isChecked():
             self.pfa_mode = 'random'
+            self.nbS_setting()
+            self.nbL_setting()
         elif self.radioButton_2.isChecked():
             self.pfa_mode = 'file'
 
@@ -137,12 +139,6 @@ class MyWindow(QMainWindow, form_class):
 
     def enter_pressed(self):
         start_time = time.time()
-        # make hamming automaton
-        input_string = str(self.lineEdit.text())
-        alphabet = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'
-        sigma = alphabet.split(' ')[0:self.pfa_nbL]
-        self.hamming = PFA_utils.DFA_constructor(input_string, self.k, sigma)
-        print('hamming done')
         # make pfa
         if self.pfa_mode == 'random':
             self.input_dpfa = PFA_utils.DPFA_generator(nbS = self.pfa_nbS, nbL = self.pfa_nbL)
@@ -150,8 +146,24 @@ class MyWindow(QMainWindow, form_class):
             print('random generation done')
         elif self.pfa_mode == 'file':
             self.input_dpfa = PFA_utils.parser(self.fname[0])
+            self.pfa_nbS = self.input_dpfa.nbS
+            self.pfa_nbL = self.input_dpfa.nbL
             print('read input file done')
-            self.input_dpfa.print()
+        # make hamming automaton
+        input_string = str(self.lineEdit.text())
+        input_nbL = len(set(input_string))
+        if input_nbL != self.pfa_nbL:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("error: nbL of PFA and nbL of DFA are different")
+            msg.exec_()
+            print('error: nbL of PFA and nbL of DFA are different')
+            return
+        alphabet = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'
+        sigma = alphabet.split(' ')[0:self.pfa_nbL]
+        self.hamming = PFA_utils.DFA_constructor(input_string, self.k, sigma)
+        self.hamming.print()
+        print('hamming done')    
         # intersect hamming & pfa -> sub_pfa
         start_intersect_time = time.time()
         ra = self.input_dpfa.intersect_with_DFA(self.hamming)
@@ -331,27 +343,31 @@ def makePNG(A, file_name):
             elif A.final_states[i] == 0:
                 dot.node(str(i),'{}'.format(str(i)), shape = 'circle')
 
-        check_dict = {}
-        replace_char = {} # dict {from : alphabet of one character}
-        for from_state, character in A.transitions.keys():
-            (from_state , to_state) = (from_state, A.transitions[(from_state, character)])
-            if (from_state, to_state) in check_dict.keys():
-                check_dict[(from_state, to_state)][0] += 1
-                check_dict[(from_state, to_state)][1] = character
-            else:
-                check_dict[(from_state, to_state)] = [1, character]
-        for (from_state, to_state) in check_dict.keys():
-            if check_dict[(from_state, to_state)][0] == 1:
-                replace_char[from_state] = check_dict[(from_state, to_state)][1]
-        # draw edges
-        for (from_state, to_state) in check_dict.keys():
-            if check_dict[(from_state, to_state)][0] == 1:
-                dot.edge(str(from_state), str(to_state), replace_char[from_state])
-            elif check_dict[(from_state, to_state)][0] == A.nbL - 1:
-                dot.edge(str(from_state), str(to_state), r'∑\\'+replace_char[from_state])
-            elif check_dict[(from_state, to_state)][0] == A.nbL:
-                dot.edge(str(from_state), str(to_state), '∑')
-            # dot.edge(str(from_state), str(A.transitions[(from_state,alphabet)]), alphabet)
+        if A.nbL > 2:
+            check_dict = {}
+            replace_char = {} # dict {from : alphabet of one character}
+            for from_state, character in A.transitions.keys():
+                (from_state , to_state) = (from_state, A.transitions[(from_state, character)])
+                if (from_state, to_state) in check_dict.keys():
+                    check_dict[(from_state, to_state)][0] += 1
+                    check_dict[(from_state, to_state)][1] = character
+                else:
+                    check_dict[(from_state, to_state)] = [1, character]
+            for (from_state, to_state) in check_dict.keys():
+                if check_dict[(from_state, to_state)][0] == 1:
+                    replace_char[from_state] = check_dict[(from_state, to_state)][1]
+            # draw edges
+            for (from_state, to_state) in check_dict.keys():
+                if check_dict[(from_state, to_state)][0] == 1:
+                    dot.edge(str(from_state), str(to_state), replace_char[from_state])
+                elif check_dict[(from_state, to_state)][0] == A.nbL - 1:
+                    dot.edge(str(from_state), str(to_state), r'∑\\'+replace_char[from_state])
+                elif check_dict[(from_state, to_state)][0] == A.nbL:
+                    dot.edge(str(from_state), str(to_state), '∑')
+        else:
+            for from_state, character in A.transitions.keys():
+                (from_state , to_state) = (from_state, A.transitions[(from_state, character)])
+                dot.edge(str(from_state), str(to_state), character)
         # draw start edge
         dot.attr('node',shape='none')
         dot.node('')
