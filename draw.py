@@ -163,7 +163,7 @@ class MyWindow(QMainWindow, form_class):
         # make pfa
         if self.pfa_mode == 'random':
             self.input_dpfa = PFA_utils.DPFA_generator(nbS = self.pfa_nbS, nbL = self.pfa_nbL)
-            #random_dpfa_bu = self.input_dpfa
+            random_dpfa_bu = self.input_dpfa
             print('random generation done')
         elif self.pfa_mode == 'file':
             if self.fname == None or self.fname[0] == '':
@@ -172,6 +172,7 @@ class MyWindow(QMainWindow, form_class):
             self.input_dpfa = PFA_utils.parser(self.fname[0])
             self.pfa_nbS = self.input_dpfa.nbS
             self.pfa_nbL = self.input_dpfa.nbL
+            random_dpfa_bu = self.input_dpfa
             print('read input file done')
         # make hamming automaton
         input_string = str(self.lineEdit.text())
@@ -187,26 +188,34 @@ class MyWindow(QMainWindow, form_class):
         # intersect hamming & pfa -> sub_pfa
         start_intersect_time = time.time()
         ra = self.input_dpfa.intersect_with_DFA(self.hamming)
-        end_intersect_time = time.time()
         self.sub_dpfa = PFA.PFA(ra.nbL, ra.nbS, ra.initial, ra.final, ra.transitions)
+        print(self.sub_dpfa.nbS)
         print('intersecting dpfa done')
-        """
+        self.dpfa = PFA_utils.normalizer(self.sub_dpfa)
+        print('normalizing sub-dpfa done')
+        print(self.dpfa.MPS())
+        print('MPS done')
+        end_intersect_time = time.time()
         start_dp_time = time.time()
-        random_dpfa_bu.k_MPS(input_string, self.k)
+        print(random_dpfa_bu.k_MPS(input_string, self.k))
         end_dp_time = time.time()
         print('=========================================')
         print('intersect time:', end_intersect_time - start_intersect_time)
         print('dp time       :', end_dp_time - start_dp_time)
         print('=========================================')
-        """
         # intersected Automata 나중에 지우자
         #self.drawing_thread(self.input_dpfa, 'input_dpfa')
         #self.drawing_thread(self.hamming, 'hamming')
         #self.drawing_thread(self.sub_dpfa, 'sub_dpfa')
         
         # normalize sub_pfa -> dpfa
-        self.dpfa = PFA_utils.normalizer(self.sub_dpfa)
-        print('normalizing done')
+        #print('--------------------before ----------------------------------------------')
+        #self.sub_dpfa.print()
+        #print('---------------------after-----------------------------------------------')
+        #self.dpfa = PFA_utils.normalizer(self.sub_dpfa)
+        #self.sub_dpfa.print()
+        #print('-------------------------------------------------------------------------')
+        #print('normalizing done')
         ##self.dpfa = input_dpfa
         
         # initialize the table

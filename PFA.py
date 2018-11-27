@@ -453,7 +453,7 @@ class PFA(RA.RA):
                 MPS_candidate[pos_tuple[k-1]] = alpha_tuple[k-1]
                 prob = prob @ suffix_list[pos_tuple[k-1]]
                 ###
-
+                print(MPS_candidate)
                 if prob > most_prob:
                     most_prob = prob
                     MPS = MPS_candidate[:]

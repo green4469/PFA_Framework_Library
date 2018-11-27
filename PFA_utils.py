@@ -201,6 +201,7 @@ def pfa2input(pfa, file_name):
     f.close()
 
 # Normalize sub-DPFA to DPFA
+"""
 def from_initial_to_state_string(at, target_state):
     # BFS
     from DS import Node, Queue
@@ -235,33 +236,65 @@ def from_initial_to_state_string(at, target_state):
             q.enqueue(new_node)
 
     raise Exception('There exist unreachable state')
+"""
 
-def normalizer(at):
+def normalizer(prev_at):
+    at = PFA.PFA(prev_at.nbL, prev_at.nbS, prev_at.initial, prev_at.final, prev_at.transitions)
+
     if at.nbS == 0:
         return at
+
     new_initial = np.zeros(at.nbS, dtype=np.float64)
     new_initial[0] = 1.0
-    at.initial = new_initial
+    #at.initial = new_initial
 
     new_final = np.zeros(at.nbS, dtype=np.float64)
+
     new_transitions = {}
     for alpha in at.alphabets:
         new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64)
 
+
+    visited = []
+
+    from DS import Node, Queue
+
+    Q = Queue()
+    Q.enqueue(Node((0, '')))
+    # dp
+    prefix_prob_dp = {}
+    parse_dp = {}
     ##
-    for current_state in range(at.nbS):
-        w = from_initial_to_state_string(at, current_state)
-        new_final[current_state] = at.parse(w) / at.prefix_prob2(w)
+    #for current_state in range(at.nbS):
+    while not Q.is_empty():
+        current_state, w = Q.dequeue().data
+        #print(w)
+        visited.append(current_state)
+
+        #w = from_initial_to_state_string(at, current_state)
+        #dp
+        if w not in prefix_prob_dp.keys():
+            prefix_prob_dp[w] = at.prefix_prob2(w)
+        if w not in parse_dp.keys():
+            parse_dp[w] = at.parse(w)
+        new_final[current_state] = parse_dp[w] / prefix_prob_dp[w]
 
         for a, tm in at.transitions.items():
             next_state = np.argmax(tm[current_state])
 
             if tm[current_state][next_state] == 0.0:  # What if there's no next state for this alphabet?
                 continue
+            #dp
+            wa = w+str(a)
+            if wa not in prefix_prob_dp.keys():
+                prefix_prob_dp[wa] = at.prefix_prob2(wa)
+            new_transitions[a][current_state, next_state] = prefix_prob_dp[wa] / prefix_prob_dp[w] #이거 dp 가능할듯
 
-            new_transitions[a][current_state, next_state] = at.prefix_prob2(w+a) / at.prefix_prob2(w)
+            if next_state not in visited:
+                Q.enqueue(Node((next_state, wa)))
     ##
 
+    at.initial = new_initial
     at.final = new_final
     at.transitions = new_transitions
     return at
