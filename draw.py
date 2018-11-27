@@ -166,13 +166,13 @@ class MyWindow(QMainWindow, form_class):
             print('read input file done')
         # make hamming automaton
         input_string = str(self.lineEdit.text())
-        input_nbL = len(set(input_string))
-        if input_nbL > self.pfa_nbL:
-            print_warning("error: nbL of DFA is bigger than nbL of PFA")
-            print('error: nbL of DFA is bigger than nbL of PFA')
-            return
+        input_set = set(input_string)
         alphabet = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'
         sigma = alphabet.split(' ')[0:self.pfa_nbL]
+        for character in input_set:
+            if character not in sigma:
+                print_warning("'{}' is not in ∑".format(str(character)))
+                return
         self.hamming = PFA_utils.DFA_constructor(input_string, self.k, sigma)
         self.hamming.print()
         print('hamming done')    

@@ -2,12 +2,17 @@
 digraph {
 	0 [label=0 shape=circle]
 	1 [label=1 shape=circle]
-	2 [label=2 shape=doublecircle]
-	3 [label=3 shape=circle]
-	0 -> 3 [label="∑"]
-	1 -> 3 [label="∑"]
-	2 -> 3 [label="∑"]
-	3 -> 3 [label="∑"]
+	2 [label=2 shape=circle]
+	3 [label=3 shape=doublecircle]
+	4 [label=4 shape=circle]
+	0 -> 1 [label=a]
+	1 -> 4 [label="∑\\b"]
+	2 -> 4 [label="∑\\c"]
+	3 -> 4 [label="∑"]
+	4 -> 4 [label="∑"]
+	0 -> 4 [label="∑\\a"]
+	1 -> 2 [label=b]
+	2 -> 3 [label=c]
 	node [shape=none]
 	""
 	"" -> 0
