@@ -2135,7 +2135,7 @@ Strings</string>
      <rect>
       <x>1170</x>
       <y>750</y>
-      <width>311</width>
+      <width>331</width>
       <height>31</height>
      </rect>
     </property>
@@ -2169,12 +2169,12 @@ Strings</string>
       <rect>
        <x>230</x>
        <y>10</y>
-       <width>90</width>
+       <width>101</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Input PFA</string>
+      <string>Input file PFA</string>
      </property>
     </widget>
    </widget>
