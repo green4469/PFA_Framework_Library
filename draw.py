@@ -120,19 +120,31 @@ class MyWindow(QMainWindow, form_class):
             self.textBrowser_2.setText(self.fname[0])
 
     def nbL_setting(self):
-        nbL = self.lineEdit_3.text()
+        nbL = self.lineEdit_3.text()        
+        if nbL.isdigit() == False:
+            print_warning('Only numbers can be entered.')
+            self.lineEdit_3.setText(str(self.pfa_nbL))
+            return
         if nbL == '':
            nbL = '0' 
         self.pfa_nbL = int(nbL)
 
     def nbS_setting(self):
         nbS = self.lineEdit_4.text()
+        if nbS.isdigit() == False:
+            print_warning('Only numbers can be entered.')
+            self.lineEdit_4.setText(str(self.pfa_nbS))
+            return
         if nbS == '':
            nbS = '0' 
         self.pfa_nbS = int(nbS)
 
     def num_of_string_setting(self):
         num_of_string = self.lineEdit_5.text()
+        if num_of_string.isdigit() == False:
+            print_warning('Only numbers can be entered.')
+            self.lineEdit_5.setText(str(self.num_of_string))
+            return
         if num_of_string == '':
            num_of_string = '0' 
         self.num_of_string = int(num_of_string)
@@ -146,10 +158,7 @@ class MyWindow(QMainWindow, form_class):
             print('random generation done')
         elif self.pfa_mode == 'file':
             if self.fname == None:
-                msg = QMessageBox()
-                msg.setIcon(QMessageBox.Warning)
-                msg.setText("NO FILE")
-                msg.exec_()
+                print_warning('NO FILE')
                 return
             self.input_dpfa = PFA_utils.parser(self.fname[0])
             self.pfa_nbS = self.input_dpfa.nbS
@@ -159,10 +168,7 @@ class MyWindow(QMainWindow, form_class):
         input_string = str(self.lineEdit.text())
         input_nbL = len(set(input_string))
         if input_nbL != self.pfa_nbL:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setText("error: nbL of PFA and nbL of DFA are different")
-            msg.exec_()
+            print_warning("error: nbL of PFA and nbL of DFA are different")
             print('error: nbL of PFA and nbL of DFA are different')
             return
         alphabet = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'
@@ -292,6 +298,10 @@ class MyWindow(QMainWindow, form_class):
 
     def hamming_distance(self):
         d = self.lineEdit_2.text()
+        if d.isdigit() == False:
+            print_warning('Only numbers can be entered.')
+            self.lineEdit_2.setText(str(self.k))
+            return
         if d == '':
            d = '0' 
         self.k = int(d)
@@ -426,7 +436,13 @@ def emphasizePNG(RA, string, file_name):
         dot.edge('','0',style='bold')
         dot.render(file_name)
     else:
-        dot.node('Empty Automaton', shape='none') 
+        dot.node('Empty Automaton', shape='none')
+
+def print_warning(string):
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Warning)
+    msg.setText(string)
+    msg.exec_()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
