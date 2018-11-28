@@ -5,6 +5,26 @@ import PFA
 
 from DS import Queue, Node
 
+def update_progress(progress, start_time):
+    barLength = 100 # Modify this to change the length of the progress bar
+    status = ""
+    if isinstance(progress, int):
+        progress = float(progress)
+    if not isinstance(progress, float):
+        progress = 0
+        status = "error: progress var must be float\r\n"
+    if progress < 0:
+        progress = 0
+        status = "Halt...\r\n"
+    if progress >= 1:
+        progress = 1
+        status = "Done...\r\n"
+    block = int(round(barLength*progress))
+    current_time = time.time()
+    text = "\rPercent: [{0}] {1}% {3} seconds {2}".format( "#"*block + "-"*(barLength-block), round(progress*100,2), status, round(current_time - start_time,2))
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
 
 
 # Receive relative numbers e.g., 3/5
@@ -239,6 +259,7 @@ def from_initial_to_state_string(at, target_state):
 """
 
 def normalizer(prev_at):
+    start_time = time.time()
     at = PFA.PFA(prev_at.nbL, prev_at.nbS, prev_at.initial, prev_at.final, prev_at.transitions)
 
     if at.nbS == 0:
@@ -255,7 +276,7 @@ def normalizer(prev_at):
         new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64)
 
 
-    visited = []
+    once_enqueued = [0]
 
     from DS import Node, Queue
 
@@ -263,35 +284,30 @@ def normalizer(prev_at):
     Q.enqueue(Node((0, '')))
     # dp
     prefix_prob_dp = {}
-    parse_dp = {}
     ##
     #for current_state in range(at.nbS):
+    i = 0
+    prefix_prob_dp[''] = at.prefix_prob2('')
     while not Q.is_empty():
         current_state, w = Q.dequeue().data
+        i += 1
+        update_progress(i/at.nbS, start_time)
+        #print('{} : {} : {}%'.format(current_state, w,round(i/at.nbS *100,2)))
         #print(w)
-        visited.append(current_state)
 
         #w = from_initial_to_state_string(at, current_state)
-        #dp
-        if w not in prefix_prob_dp.keys():
-            prefix_prob_dp[w] = at.prefix_prob2(w)
-        if w not in parse_dp.keys():
-            parse_dp[w] = at.parse(w)
-        new_final[current_state] = parse_dp[w] / prefix_prob_dp[w]
-
+        new_final[current_state] = at.parse(w) / prefix_prob_dp[w]
         for a, tm in at.transitions.items():
             next_state = np.argmax(tm[current_state])
-
             if tm[current_state][next_state] == 0.0:  # What if there's no next state for this alphabet?
                 continue
             #dp
             wa = w+str(a)
-            if wa not in prefix_prob_dp.keys():
-                prefix_prob_dp[wa] = at.prefix_prob2(wa)
-            new_transitions[a][current_state, next_state] = prefix_prob_dp[wa] / prefix_prob_dp[w] #이거 dp 가능할듯
-
-            if next_state not in visited:
+            prefix_prob_dp[wa] = at.prefix_prob2(wa)
+            new_transitions[a][current_state, next_state] = prefix_prob_dp[wa] / prefix_prob_dp[w]
+            if next_state not in once_enqueued:
                 Q.enqueue(Node((next_state, wa)))
+                once_enqueued.append(next_state)
     ##
 
     at.initial = new_initial

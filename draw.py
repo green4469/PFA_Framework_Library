@@ -189,7 +189,7 @@ class MyWindow(QMainWindow, form_class):
         start_intersect_time = time.time()
         ra = self.input_dpfa.intersect_with_DFA(self.hamming)
         self.sub_dpfa = PFA.PFA(ra.nbL, ra.nbS, ra.initial, ra.final, ra.transitions)
-        print(self.sub_dpfa.nbS)
+        print('nbS: ',self.sub_dpfa.nbS)
         print('intersecting dpfa done')
         self.dpfa = PFA_utils.normalizer(self.sub_dpfa)
         print('normalizing sub-dpfa done')

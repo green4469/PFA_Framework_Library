@@ -9,6 +9,26 @@ import heapq
 #import lev
 from collections import deque
 
+def update_progress(progress, start_time):
+    barLength = 100 # Modify this to change the length of the progress bar
+    status = ""
+    if isinstance(progress, int):
+        progress = float(progress)
+    if not isinstance(progress, float):
+        progress = 0
+        status = "error: progress var must be float\r\n"
+    if progress < 0:
+        progress = 0
+        status = "Halt...\r\n"
+    if progress >= 1:
+        progress = 1
+        status = "Done...\r\n"
+    block = int(round(barLength*progress))
+    current_time = time.time()
+    text = "\rPercent: [{0}] {1}% {3} seconds {2}".format( "#"*block + "-"*(barLength-block), round(progress*100,2), status, round(current_time - start_time,2))
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
 
 class PFA(RA.RA):
     """ PFA class definition """
@@ -374,7 +394,7 @@ class PFA(RA.RA):
         Input: an Automaton, a string x, an positive integer k
         Output: MPS under k
         """
-
+        start_pre = time.time()
         x_list = list(x)  # make input string x to a list
 
         # Prefix probabilities
@@ -411,7 +431,8 @@ class PFA(RA.RA):
         suffix_list.pop()
         suffix_list.reverse()
         x_list.reverse()  # Make the list original order
-
+        end_pre = time.time()
+        print('prefix, sufix, infix calculation time: {} seconds.'.format(end_pre - start_pre))
         # When k = 1
         if k == 1:
             x_list = list(x)
@@ -433,16 +454,20 @@ class PFA(RA.RA):
         # Find all possible combinations when k using cartesian product
         # nCk, Sigma^k?
         alpha_comb = list(itertools.product(self.alphabets, repeat=k))  # Cartesian product for repeat k, e.g., A = ['a', 'b']; when k = 3; A x A x A
-        pos_comb = itertools.combinations(range(n), k)  # Combinations for posstible k positions
+        pos_comb = list(itertools.combinations(range(n), k))  # Combinations for posstible k positions
 
         # Calculate probabilities
         # O(nCk * Sigma^k * k)
         most_prob = 0
         MPS = []
+        total = len(alpha_comb)*len(pos_comb)
+        print('total:',total)
+        iteration = 0
+        start_time = time.time()
         for pos_tuple in pos_comb:
             for alpha_tuple in alpha_comb:
+                iteration += 1
                 MPS_candidate = x_list[:]
-
                 ###
                 prob = prefix_list[pos_tuple[0]]
                 for i in range(k-1):
@@ -453,7 +478,7 @@ class PFA(RA.RA):
                 MPS_candidate[pos_tuple[k-1]] = alpha_tuple[k-1]
                 prob = prob @ suffix_list[pos_tuple[k-1]]
                 ###
-                print(MPS_candidate)
+                update_progress(iteration/total, start_time)
                 if prob > most_prob:
                     most_prob = prob
                     MPS = MPS_candidate[:]
