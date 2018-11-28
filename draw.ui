@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1619</width>
-    <height>927</height>
+    <height>960</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -166,8 +166,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1597</width>
-           <height>658</height>
+           <width>1589</width>
+           <height>644</height>
           </rect>
          </property>
          <layout class="QFormLayout" name="formLayout_2">
@@ -652,8 +652,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1597</width>
-           <height>658</height>
+           <width>1589</width>
+           <height>644</height>
           </rect>
          </property>
          <layout class="QFormLayout" name="formLayout_3">
@@ -1127,8 +1127,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1597</width>
-           <height>658</height>
+           <width>1589</width>
+           <height>644</height>
           </rect>
          </property>
          <layout class="QFormLayout" name="formLayout_4">
@@ -1602,8 +1602,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1597</width>
-           <height>658</height>
+           <width>1589</width>
+           <height>644</height>
           </rect>
          </property>
          <layout class="QFormLayout" name="formLayout_5">
@@ -2201,6 +2201,19 @@ Strings</string>
      </rect>
     </property>
    </widget>
+   <widget class="QPushButton" name="pushButton_2">
+    <property name="geometry">
+     <rect>
+      <x>1180</x>
+      <y>850</y>
+      <width>161</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Save Random PFA</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -2208,7 +2221,7 @@ Strings</string>
      <x>0</x>
      <y>0</y>
      <width>1619</width>
-     <height>21</height>
+     <height>31</height>
     </rect>
    </property>
   </widget>

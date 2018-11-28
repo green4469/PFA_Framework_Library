@@ -76,6 +76,7 @@ class MyWindow(QMainWindow, form_class):
         self.lineEdit_2.returnPressed.connect(self.enter_pressed)
         self.lineEdit_5.returnPressed.connect(self.filling_table)
         self.pushButton.clicked.connect(self.pushButtonClicked)
+        self.pushButton_2.clicked.connect(self.pushButton2Clicked)
         self.lineEdit_2.setText(str(self.k))
         self.lineEdit_3.setText(str(self.pfa_nbL))
         self.lineEdit_4.setText(str(self.pfa_nbS))
@@ -95,6 +96,7 @@ class MyWindow(QMainWindow, form_class):
         self.radioButton_2.clicked.connect(self.radioButtonClicked)
         QScroller.grabGesture(self.scrollArea_4.viewport(), QScroller.LeftMouseButtonGesture)
         self.radioButtonClicked()
+        self.pushButton_2.setEnabled(False)
         #self.tabWidget.currentChanged.connect(self.tab_change)
         #QScroller.grabGesture(self.scrollArea_1.viewport(), QScroller.LeftMouseButtonGesture)
         #QScroller.grabGesture(self.scrollArea_2.viewport(), QScroller.LeftMouseButtonGesture)
@@ -136,6 +138,7 @@ class MyWindow(QMainWindow, form_class):
             palette.setColor(QtGui.QPalette.Text,Qt.darkGray)
             self.lineEdit_3.setPalette(palette)
             self.lineEdit_4.setPalette(palette)
+            self.pushButton_2.setEnabled(False)
             #enable file box
             palette.setColor(QtGui.QPalette.Base,Qt.white)
             palette.setColor(QtGui.QPalette.Text,Qt.black)
@@ -146,6 +149,11 @@ class MyWindow(QMainWindow, form_class):
         self.fname = QFileDialog.getOpenFileName(self)
         print(self.fname)
         self.textBrowser_2.setText(self.fname[0])
+
+    def pushButton2Clicked(self):
+        w_fname = QFileDialog.getOpenFileName(self)
+        if w_fname[0] != '':
+            PFA_utils.pfa2input(self.input_dpfa,w_fname[0])
 
     def nbL_setting(self):
         nbL = self.lineEdit_3.text()
@@ -192,6 +200,7 @@ class MyWindow(QMainWindow, form_class):
         if self.pfa_mode == 'random':
             self.input_dpfa = PFA_utils.DPFA_generator(nbS = self.pfa_nbS, nbL = self.pfa_nbL)
             random_dpfa_bu = self.input_dpfa
+            self.pushButton_2.setEnabled(True)
             print('random generation done')
         elif self.pfa_mode == 'file':
             if self.fname == None or self.fname[0] == '':
