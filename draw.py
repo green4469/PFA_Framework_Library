@@ -111,13 +111,40 @@ class MyWindow(QMainWindow, form_class):
             self.pfa_mode = 'random'
             self.nbS_setting()
             self.nbL_setting()
+            #enable random box
+            self.lineEdit_3.setReadOnly(False)
+            self.lineEdit_4.setReadOnly(False)
+            palette = QtGui.QPalette()
+            palette.setColor(QtGui.QPalette.Base,Qt.white)
+            palette.setColor(QtGui.QPalette.Text,Qt.black)
+            self.lineEdit_3.setPalette(palette)
+            self.lineEdit_4.setPalette(palette)
+            #disable file box
+            palette.setColor(QtGui.QPalette.Base,Qt.gray)
+            palette.setColor(QtGui.QPalette.Text,Qt.darkGray)
+            self.textBrowser_2.setPalette(palette)
+            self.pushButton.setEnabled(False)
+
         elif self.radioButton_2.isChecked():
             self.pfa_mode = 'file'
-
+            #disable random box
+            self.lineEdit_3.setReadOnly(True)
+            self.lineEdit_4.setReadOnly(True)
+            palette = QtGui.QPalette()
+            palette.setColor(QtGui.QPalette.Base,Qt.gray)
+            palette.setColor(QtGui.QPalette.Text,Qt.darkGray)
+            self.lineEdit_3.setPalette(palette)
+            self.lineEdit_4.setPalette(palette)
+            #enable file box
+            palette.setColor(QtGui.QPalette.Base,Qt.white)
+            palette.setColor(QtGui.QPalette.Text,Qt.black)
+            self.textBrowser_2.setPalette(palette)
+            self.pushButton.setEnabled(True)
+            
     def pushButtonClicked(self):
-            self.fname = QFileDialog.getOpenFileName(self)
-            print(self.fname)
-            self.textBrowser_2.setText(self.fname[0])
+        self.fname = QFileDialog.getOpenFileName(self)
+        print(self.fname)
+        self.textBrowser_2.setText(self.fname[0])
 
     def nbL_setting(self):
         nbL = self.lineEdit_3.text()
