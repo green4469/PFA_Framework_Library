@@ -247,17 +247,24 @@ def normalizer(at):
         return at
     new_initial = np.zeros(at.nbS, dtype=np.float64)
     new_initial[0] = 1.0
+    if at.cuda:
+        new_initial = torch.from_numpy(new_initial).cuda()
     at.initial = new_initial
 
-    new_final = np.zeros(at.nbS, dtype=np.float64)
+    if at.cuda:
+        new_final = torch.zeros((at.nbS,), dtype=torch.double).cuda()
+    else:
+        new_final = np.zeros(at.nbS, dtype=np.float64)
     new_transitions = {}
     for alpha in at.alphabets:
-        new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64)
+        if at.cuda:
+            new_transitions[alpha] = torch.zeros((at.nbS, at.nbS), dtype=torch.double).cuda()
+        else:
+            new_transitions[alpha] = np.zeros((at.nbS, at.nbS), dtype=np.float64)
 
-    """
-    str_table = {0:''}
-    """
     visited = [0]
+
+    prefix_prob_dp = {}
 
     from DS import Node, Queue
     Q = Queue()
@@ -267,34 +274,26 @@ def normalizer(at):
         current_state, w = Q.dequeue().data
 
         found = False
-        # DP
-        """
-        for a, tm in at.transitions.items():
-            for state in np.nonzero(tm[:,current_state])[0]:
-                if state in str_table.keys():
-                    w = str_table[state] + a
-                    found = True
-                    break
-            if found:
-                break
 
-        if not found:
-            w = from_initial_to_state_string(at, current_state)
+        if w not in prefix_prob_dp.keys():
+            prefix_prob_dp[w] = at.prefix_prob2(w)
 
-        str_table[current_state] = w
-        """
-
-        new_final[current_state] = at.parse(w) / at.prefix_prob2(w)
+        new_final[current_state] = at.parse(w) / prefix_prob_dp[w]
 
         for a, tm in at.transitions.items():
-            next_state = np.argmax(tm[current_state])
+            if at.cuda:
+                next_state = torch.argmax(tm[current_state])
+            else:
+                next_state = np.argmax(tm[current_state])
 
-            if tm[current_state][next_state] == 0.0:  # What if there's no next state for this alphabet?
+            if tm[current_state, next_state] == 0.0:  # What if there's no next state for this alphabet?
                 continue
 
-            new_transitions[a][current_state, next_state] = at.prefix_prob2(w+a) / at.prefix_prob2(w)
+            if w+a not in prefix_prob_dp.keys():
+                prefix_prob_dp[w+a] = at.prefix_prob2(w+a)
 
-            #str_table[next_state] = w+a
+            new_transitions[a][current_state, next_state] = prefix_prob_dp[w+a] / prefix_prob_dp[w]
+
             if next_state not in visited:
                 visited.append(next_state)
                 Q.enqueue(Node((next_state, w+a)))

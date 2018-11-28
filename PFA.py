@@ -169,6 +169,8 @@ class PFA(RA.RA):
         """
 
         M_w = np.eye(self.nbS)
+        if self.cuda:
+            M_w = torch.from_numpy(M_w).cuda()
         for char in w:
             M_w= M_w @ self.transitions[char]
 
@@ -182,6 +184,8 @@ class PFA(RA.RA):
         """
 
         M_w = np.eye(self.nbS)
+        if self.cuda:
+            M_w = torch.from_numpy(M_w).cuda()
         for char in w:
             M_w= M_w @ self.transitions[char]
 

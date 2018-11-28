@@ -6,3 +6,4 @@ yumin_dev.txt
 *.csv
 *.txt
 debug*
+*.dpfa

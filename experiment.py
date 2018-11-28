@@ -29,14 +29,24 @@ def main(args):
     max_n = args.max_n
     iters = args.iters
     result_path = args.result_path
-    if os.path.exists(result_path+'.csv'):
+    load_ckpt = args.load_ckpt
+    if not load_ckpt and os.path.exists(result_path+'.csv'):
         print(result_path,'exists')
         sys.exit()
-    with open(result_path+'.csv', 'w+') as f:
-        f.write('k,n,nbS,nbL,RT_DP,RT_intersect,input_string,mps_DP,mps_intersect,intersect_time,normalize_time\n')
 
     # 1. generate a DPFA and string w \in \Sigma s.t. |w| = n
-    dpfa = PFA_utils.DPFA_generator(nbS, nbL)
+    if load_ckpt:
+        dpfa = PFA_utils.parser(result_path+'.dpfa')
+        if dpfa.nbS != nbS or dpfa.nbL != nbL:
+            print("ERROR: dpfa.nbS={}, nbS={}, dpfa.nbL={}, nbL={}".format(dpfa.nbS, nbS, dpfa.nbL, nbL))
+        if not os.path.exists(result_path+'.csv'):
+            with open(result_path+'.csv', 'w+') as f:
+                f.write('k,n,nbS,nbL,RT_DP,RT_intersect,input_string,mps_DP,mps_intersect,intersect_time,normalize_time\n')
+
+    else:
+        dpfa = PFA_utils.DPFA_generator(nbS, nbL)
+        with open(result_path+'.csv', 'w+') as f:
+            f.write('k,n,nbS,nbL,RT_DP,RT_intersect,input_string,mps_DP,mps_intersect,intersect_time,normalize_time\n')
     print("DPFA generated")
     print("loading to GPU...")
     dpfa.use_cuda()
@@ -75,11 +85,14 @@ def main(args):
                         print('intersecting...')
                         intersect_start_time = time.time()
                         sub_dpfa = dpfa.intersect_with_DFA(dfa)
-                        sub_dpfa = PFA.PFA(sub_dpfa.nbL, sub_dpfa.nbS, sub_dpfa.initial, sub_dpfa.final, sub_dpfa.transitions)
                         intersect_time = time.time() - intersect_start_time
+                        saved_time = time.time() - start_time
+                        sub_dpfa = PFA.PFA(sub_dpfa.nbL, sub_dpfa.nbS, sub_dpfa.initial, sub_dpfa.final, sub_dpfa.transitions)
                         print('nbS of intersected DPFA: {}'.format(sub_dpfa.nbS))
-                        normalize_start_time = time.time()
                         if sub_dpfa.nbS > 0:
+                            sub_dpfa.use_cuda()
+                            start_time = time.time()
+                            normalize_start_time = time.time()
                             print('normalizing...')
                             normalized_dpfa = PFA_utils.normalizer(sub_dpfa)
                             normalize_time = time.time() - normalize_start_time
@@ -87,16 +100,18 @@ def main(args):
                             mps[algorithm] = normalized_dpfa.MPS()
                         else:
                             mps[algorithm] = None
-                            normalize_time = time.time() - normalize_start_time
+                            normalized_time = 0.
                     elif 'dp' in algorithm.lower():
+                        saved_time = 0.0
                         mps[algorithm] = dpfa.k_MPS(w, k)
                     elif 'bf' in algorithm.lower():
+                        saved_time = 0.0
                         mps[algorithm] = dpfa.k_MPS_bf(w, k)
                     else:
                         raise NotImplementedError
                     print('done!')
                     end_time = time.time()
-                    RT[algorithm] = end_time - start_time
+                    RT[algorithm] = end_time - start_time + saved_time
                     print('time elapsed: {:.4f}s'.format(RT[algorithm]))
                 # 3. record RT
                 if sub_dpfa.parse(mps['dp']) == 0.:
@@ -117,6 +132,7 @@ if __name__ == "__main__":
     parser.add_argument('--iters', type=int, help='# of iters per string')
     parser.add_argument('--max_n', type=int, help='maximum size of n')
     parser.add_argument('--result_path', type=str, help='name of the result')
+    parser.add_argument('--load_ckpt', type=bool, default=False, help='True: load ckpt')
 
     args = parser.parse_args()
     main(args)
