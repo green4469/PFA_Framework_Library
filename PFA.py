@@ -165,7 +165,6 @@ class PFA(RA.RA):
         """
 
         result = self.initial
-
         for char in w:
             result = result @ self.transitions[char]
 
@@ -304,11 +303,12 @@ class PFA(RA.RA):
 
             else:
                 Continue = False
+                """
                 print("continue false set")
                 print("current_prob: {}".format(current_prob))
                 print("PP(b): {}".format(PP('b')))
                 print("PP(z): {}".format(PP('z')))
-
+                """
         return current_best
 
     def n_MPS(self, n):

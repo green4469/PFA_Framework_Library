@@ -122,6 +122,8 @@ class MyWindow(QMainWindow, form_class):
             palette.setColor(QtGui.QPalette.Text,Qt.black)
             self.lineEdit_3.setPalette(palette)
             self.lineEdit_4.setPalette(palette)
+            if self.input_dpfa != None:
+                self.pushButton_2.setEnabled(True)
             #disable file box
             palette.setColor(QtGui.QPalette.Base,Qt.gray)
             palette.setColor(QtGui.QPalette.Text,Qt.darkGray)
@@ -146,12 +148,12 @@ class MyWindow(QMainWindow, form_class):
             self.pushButton.setEnabled(True)
 
     def pushButtonClicked(self):
-        self.fname = QFileDialog.getOpenFileName(self)
+        self.fname = QFileDialog.getOpenFileName(self, filter = 'txt(*.txt)')
         print(self.fname)
         self.textBrowser_2.setText(self.fname[0])
 
     def pushButton2Clicked(self):
-        w_fname = QFileDialog.getOpenFileName(self)
+        w_fname = QFileDialog.getSaveFileName(self, filter = 'txt(*.txt)')
         if w_fname[0] != '':
             PFA_utils.pfa2input(self.input_dpfa,w_fname[0])
 
@@ -211,6 +213,7 @@ class MyWindow(QMainWindow, form_class):
             self.pfa_nbL = self.input_dpfa.nbL
             random_dpfa_bu = self.input_dpfa
             print('read input file done')
+            
         # make hamming automaton
         input_string = str(self.lineEdit.text())
         input_set = set(input_string)
@@ -233,6 +236,8 @@ class MyWindow(QMainWindow, form_class):
         print(self.dpfa.MPS())
         print('MPS done')
         end_intersect_time = time.time()
+        # dp part
+        """
         start_dp_time = time.time()
         print(random_dpfa_bu.k_MPS(input_string, self.k))
         end_dp_time = time.time()
@@ -240,6 +245,7 @@ class MyWindow(QMainWindow, form_class):
         print('intersect time:', end_intersect_time - start_intersect_time)
         print('dp time       :', end_dp_time - start_dp_time)
         print('=========================================')
+        """
         # intersected Automata 나중에 지우자
         #self.drawing_thread(self.input_dpfa, 'input_dpfa')
         #self.drawing_thread(self.hamming, 'hamming')

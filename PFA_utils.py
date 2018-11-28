@@ -6,7 +6,7 @@ import PFA
 from DS import Queue, Node
 
 def update_progress(progress, start_time):
-    barLength = 100 # Modify this to change the length of the progress bar
+    barLength = 50 # Modify this to change the length of the progress bar
     status = ""
     if isinstance(progress, int):
         progress = float(progress)
