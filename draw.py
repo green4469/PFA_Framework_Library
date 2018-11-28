@@ -93,11 +93,12 @@ class MyWindow(QMainWindow, form_class):
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.radioButton_1.clicked.connect(self.radioButtonClicked)
         self.radioButton_2.clicked.connect(self.radioButtonClicked)
+        QScroller.grabGesture(self.scrollArea_4.viewport(), QScroller.LeftMouseButtonGesture)
+        self.radioButtonClicked()
         #self.tabWidget.currentChanged.connect(self.tab_change)
         #QScroller.grabGesture(self.scrollArea_1.viewport(), QScroller.LeftMouseButtonGesture)
         #QScroller.grabGesture(self.scrollArea_2.viewport(), QScroller.LeftMouseButtonGesture)
         #QScroller.grabGesture(self.scrollArea_3.viewport(), QScroller.LeftMouseButtonGesture)
-        QScroller.grabGesture(self.scrollArea_4.viewport(), QScroller.LeftMouseButtonGesture)
         #self.scrollArea_1.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         #self.scrollArea_2.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         #self.scrollArea_3.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
@@ -140,7 +141,7 @@ class MyWindow(QMainWindow, form_class):
             palette.setColor(QtGui.QPalette.Text,Qt.black)
             self.textBrowser_2.setPalette(palette)
             self.pushButton.setEnabled(True)
-            
+
     def pushButtonClicked(self):
         self.fname = QFileDialog.getOpenFileName(self)
         print(self.fname)
