@@ -77,6 +77,7 @@ class MyWindow(QMainWindow, form_class):
         self.lineEdit_5.returnPressed.connect(self.filling_table)
         self.pushButton.clicked.connect(self.pushButtonClicked)
         self.pushButton_2.clicked.connect(self.pushButton2Clicked)
+        self.pushButton_3.clicked.connect(self.clearButtonClicked)
         self.lineEdit_2.setText(str(self.k))
         self.lineEdit_3.setText(str(self.pfa_nbL))
         self.lineEdit_4.setText(str(self.pfa_nbS))
@@ -97,6 +98,7 @@ class MyWindow(QMainWindow, form_class):
         QScroller.grabGesture(self.scrollArea_4.viewport(), QScroller.LeftMouseButtonGesture)
         self.radioButtonClicked()
         self.pushButton_2.setEnabled(False)
+        self.mutex = QMutex()
         #self.tabWidget.currentChanged.connect(self.tab_change)
         #QScroller.grabGesture(self.scrollArea_1.viewport(), QScroller.LeftMouseButtonGesture)
         #QScroller.grabGesture(self.scrollArea_2.viewport(), QScroller.LeftMouseButtonGesture)
@@ -146,6 +148,12 @@ class MyWindow(QMainWindow, form_class):
             palette.setColor(QtGui.QPalette.Text,Qt.black)
             self.textBrowser_2.setPalette(palette)
             self.pushButton.setEnabled(True)
+
+    def clearButtonClicked(self):
+        self.draw_1.clear()
+        self.draw_2.clear()
+        self.draw_3.clear()
+        self.draw_4.clear()
 
     def pushButtonClicked(self):
         self.fname = QFileDialog.getOpenFileName(self, filter = 'txt(*.txt)')
@@ -213,7 +221,7 @@ class MyWindow(QMainWindow, form_class):
             self.pfa_nbL = self.input_dpfa.nbL
             random_dpfa_bu = self.input_dpfa
             print('read input file done')
-            
+
         # make hamming automaton
         input_string = str(self.lineEdit.text())
         input_set = set(input_string)
@@ -374,16 +382,20 @@ class MyWindow(QMainWindow, form_class):
         if len(self.tableWidget.selectedRanges()) > 0:
             self.item_selected(self.tableWidget.currentRow())
         else:
+            self.mutex.lock()
             makePNG(self.dpfa, 'dpfa')
             pixmap = QtGui.QPixmap("dpfa.png")
             self.draw_4.setPixmap(pixmap)
+            self.mutex.unlock()
 
     def item_selected(self, row):
         item = self.tableWidget.item(row, 1).text()
+        self.mutex.lock()
         emphasizePNG(self.dpfa, item, 'dpfa')
         pixmap = QtGui.QPixmap("dpfa.png")
         self.draw_4.setPixmap(pixmap)
-        
+        self.mutex.unlock()
+
 def makePNG(A, file_name):
     if type(A).__name__ == 'PFA':
         dot = Digraph(comment='PFA', format='png')
